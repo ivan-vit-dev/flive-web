@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function isOwner(matchData) {
+      return isAuth() && request.auth.uid == matchData.reporterId;
+    }
+
+    // Users: each reporter can only read/write their own doc
+    match /users/{userId} {
+      allow read, write: if isAuth() && request.auth.uid == userId;
+    }
+
+    // Matches: public read, authenticated create, owner-only update/delete
+    match /matches/{matchId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if isOwner(resource.data);
+
+      // Events: public read, owner-only write (verified via parent match doc)
+      match /events/{eventId} {
+        allow read: if true;
+        allow create, update, delete: if isAuth()
+          && request.auth.uid == get(/databases/$(database)/documents/matches/$(matchId)).data.reporterId;
+      }
+    }
+  }
+}
