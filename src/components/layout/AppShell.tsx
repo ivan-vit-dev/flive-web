@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { AppSidebar } from "./AppSidebar";
 import { AppTopbar } from "./AppTopbar";
+import { AppBottomNav } from "./AppBottomNav";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -32,7 +33,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <AppSidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <AppTopbar />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
+        <AppBottomNav />
       </div>
     </div>
   );

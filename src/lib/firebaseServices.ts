@@ -58,7 +58,6 @@ export async function createUserDoc(uid: string, email: string, displayName: str
 export async function getPublicMatches(): Promise<Match[]> {
   const q = query(
     collection(db, "matches"),
-    where("isPublic", "==", true),
     orderBy("scheduledAt", "desc")
   );
   const snap = await getDocs(q);
@@ -94,7 +93,10 @@ export async function createMatch(
     awayShootoutScore: 0,
     status: "scheduled" as MatchStatus,
     currentMinute: 0,
+    currentPart: 0,
     halfNumber: null,
+    parts: data.parts ?? 2,
+    partDuration: data.partDuration ?? 45,
     summary: null,
     enabledEventTypes: data.enabledEventTypes ?? GAMEPLAY_EVENTS,
     isPublic: true,
@@ -117,10 +119,11 @@ export async function deleteMatch(matchId: string): Promise<void> {
   await deleteDoc(doc(db, "matches", matchId));
 }
 
-export async function updateMatchStatus(matchId: string, status: MatchStatus, extra?: { currentMinute?: number; halfNumber?: 1 | 2 | null }): Promise<void> {
+export async function updateMatchStatus(matchId: string, status: MatchStatus, extra?: { currentMinute?: number; halfNumber?: 1 | 2 | null; currentPart?: number }): Promise<void> {
   await updateDoc(doc(db, "matches", matchId), {
     status,
     ...(extra ?? {}),
+    ...(extra?.currentMinute !== undefined ? { currentMinuteAt: serverTimestamp() } : {}),
     updatedAt: serverTimestamp(),
   });
 }
@@ -172,6 +175,33 @@ export async function addMatchEvent(
   }
 
   return ref.id;
+}
+
+export async function deleteMatchEvent(matchId: string, event: MatchEvent): Promise<void> {
+  await deleteDoc(doc(db, "matches", matchId, "events", event.id));
+
+  const matchPatch: Record<string, unknown> = { updatedAt: serverTimestamp() };
+
+  if (event.type === "goal") {
+    if (event.team === "home") matchPatch.homeScore = increment(-1);
+    if (event.team === "away") matchPatch.awayScore = increment(-1);
+  }
+  if (event.type === "own_goal") {
+    if (event.team === "home") matchPatch.awayScore = increment(-1);
+    if (event.team === "away") matchPatch.homeScore = increment(-1);
+  }
+  if (event.type === "penalty_scored") {
+    if (event.team === "home") matchPatch.homeScore = increment(-1);
+    if (event.team === "away") matchPatch.awayScore = increment(-1);
+  }
+  if (event.type === "penalty_kick" && event.shootoutResult === "scored") {
+    if (event.team === "home") matchPatch.homeShootoutScore = increment(-1);
+    if (event.team === "away") matchPatch.awayShootoutScore = increment(-1);
+  }
+
+  if (Object.keys(matchPatch).length > 1) {
+    await updateDoc(doc(db, "matches", matchId), matchPatch);
+  }
 }
 
 // ─── Post-match summary ───────────────────────────────────────────────────────

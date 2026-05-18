@@ -181,6 +181,68 @@
   .shadow-glow {
     box-shadow: var(--shadow-glow);
   }
+
+  /* card ring — replaces the broken ring-foreground/10 opacity modifier */
+  .ring-card {
+    box-shadow: 0 0 0 1px color-mix(in oklch, var(--foreground) 10%, transparent);
+  }
+
+  /* destructive semi-transparent backgrounds — replaces broken /10 /30 opacity modifiers */
+  .bg-destructive-subtle {
+    background: color-mix(in oklch, var(--destructive) 10%, transparent);
+  }
+  .border-destructive-subtle {
+    border-color: color-mix(in oklch, var(--destructive) 30%, transparent);
+  }
+
+  /* muted semi-transparent background — replaces bg-muted/50 */
+  .bg-muted-subtle {
+    background: color-mix(in oklch, var(--muted) 50%, transparent);
+  }
+
+  /* bottom-nav blurred background — replaces bg-background/80 backdrop-blur-sm */
+  .bg-background-blur {
+    background: color-mix(in oklch, var(--background) 85%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  /* hover variants for destructive subtle bg */
+  .hover\:bg-destructive-subtle:hover {
+    background: color-mix(in oklch, var(--destructive) 10%, transparent);
+  }
+  .hover\:bg-destructive-medium:hover {
+    background: color-mix(in oklch, var(--destructive) 20%, transparent);
+  }
+  .dark .dark\:bg-destructive-medium {
+    background: color-mix(in oklch, var(--destructive) 20%, transparent);
+  }
+  .dark .dark\:hover\:bg-destructive-strong:hover {
+    background: color-mix(in oklch, var(--destructive) 30%, transparent);
+  }
+
+  /* hover for input-alpha (outline button dark mode) */
+  .dark .dark\:bg-input-alpha {
+    background: color-mix(in oklch, var(--input) 30%, transparent);
+  }
+  .dark .dark\:hover\:bg-input-medium:hover {
+    background: color-mix(in oklch, var(--input) 50%, transparent);
+  }
+
+  /* muted/50 hover  */
+  .dark .dark\:hover\:bg-muted-subtle:hover {
+    background: color-mix(in oklch, var(--muted) 50%, transparent);
+  }
+}
+
+/* ─── Global overrides (unlayered — highest cascade priority) ─── */
+
+/* Fix: ring-ring/50 opacity modifier doesn't work with full oklch() variables.
+   Setting --tw-ring-color here ensures all :focus-visible rings are visible.
+   Tailwind's generated ring-ring/50 rule produces an invalid color and is ignored
+   by browsers; this unlayered rule wins over Tailwind's @layer utilities. */
+*:focus-visible {
+  --tw-ring-color: color-mix(in oklch, var(--ring) 50%, transparent);
 }
 
 /* Scrollbar */

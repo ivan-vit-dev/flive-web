@@ -20,6 +20,8 @@ export type MatchStatus =
   | "live_second"
   | "extra_time"
   | "penalty_shootout"
+  | "live_part"   // generic: any part is in progress (multi-part matches)
+  | "break"       // generic: between parts
   | "finished"
   | "cancelled"
   | "postponed";
@@ -30,6 +32,8 @@ export const LIVE_STATUSES: MatchStatus[] = [
   "live_second",
   "extra_time",
   "penalty_shootout",
+  "live_part",
+  "break",
 ];
 
 export interface MatchSummary {
@@ -62,7 +66,11 @@ export interface Match {
   scheduledAt: Timestamp;
   status: MatchStatus;
   currentMinute: number;
+  currentMinuteAt?: Timestamp;
   halfNumber: 1 | 2 | null;
+  parts?: number;        // number of parts (2 = halves, 4 = quarters). default 2
+  partDuration?: number; // minutes per part. default 45
+  currentPart?: number;  // 0 = not started, N = current/last completed part
   description: string | null;
   isPublic: true;
 
@@ -107,7 +115,9 @@ export type MatchEventType =
   | "var_review"
   | "var_goal_disallowed"
   | "var_goal_confirmed"
-  | "custom_note";
+  | "custom_note"
+  | "part_start"  // generic part start (2nd, 3rd, 4th part)
+  | "part_end";   // generic part end
 
 export const TIMELINE_EVENTS: MatchEventType[] = [
   "match_start",
@@ -118,6 +128,8 @@ export const TIMELINE_EVENTS: MatchEventType[] = [
   "extra_time_end",
   "penalty_shootout_start",
   "match_finished",
+  "part_start",
+  "part_end",
 ];
 
 export const GAMEPLAY_EVENTS: MatchEventType[] = [
@@ -186,4 +198,8 @@ export interface PendingEvent {
 export interface BroadcastSession {
   matchId: string;
   pendingEvents: PendingEvent[];
+  clock?: {
+    seconds: number; // elapsed seconds at the moment of save
+    savedAt: number; // Date.now() (Unix ms) at the moment of save
+  };
 }

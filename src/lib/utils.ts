@@ -46,3 +46,16 @@ export function clearBroadcastSession() {
   if (typeof window === "undefined") return;
   localStorage.removeItem(BROADCAST_SESSION_KEY);
 }
+
+export function saveMatchClock(seconds: number): void {
+  const session = getBroadcastSession();
+  if (!session) return;
+  setBroadcastSession({ ...session, clock: { seconds, savedAt: Date.now() } });
+}
+
+export function clearMatchClock(): void {
+  const session = getBroadcastSession();
+  if (!session) return;
+  const { clock: _clock, ...rest } = session;
+  setBroadcastSession(rest);
+}

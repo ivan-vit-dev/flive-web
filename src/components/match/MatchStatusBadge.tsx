@@ -4,18 +4,20 @@ import { cn } from "@/lib/utils";
 import type { MatchStatus } from "@/types";
 
 const STATUS_STYLES: Record<MatchStatus, string> = {
-  scheduled: "bg-muted text-muted-foreground",
-  live_first: "bg-primary text-primary-foreground",
-  half_time: "bg-amber-500 text-white",
-  live_second: "bg-primary text-primary-foreground",
-  extra_time: "bg-orange-500 text-white",
-  penalty_shootout: "bg-orange-600 text-white",
-  finished: "bg-muted text-muted-foreground",
+  scheduled: "bg-secondary text-secondary-foreground",
+  live_first: "bg-amber text-amber-foreground",
+  half_time: "bg-secondary text-secondary-foreground",
+  live_second: "bg-amber text-amber-foreground",
+  extra_time: "bg-amber text-amber-foreground",
+  penalty_shootout: "bg-amber text-amber-foreground",
+  finished: "border border-border bg-transparent text-muted-foreground",
   cancelled: "bg-destructive text-destructive-foreground",
-  postponed: "bg-muted text-muted-foreground",
+  postponed: "bg-secondary text-secondary-foreground",
+  live_part: "bg-amber text-amber-foreground",
+  break: "bg-secondary text-secondary-foreground",
 };
 
-const LIVE_STATUSES: MatchStatus[] = ["live_first", "live_second", "extra_time", "penalty_shootout"];
+const LIVE_STATUSES: MatchStatus[] = ["live_first", "live_second", "extra_time", "penalty_shootout", "live_part"];
 
 export function MatchStatusBadge({ status }: { status: MatchStatus }) {
   const t = useTranslations("match");
@@ -31,6 +33,8 @@ export function MatchStatusBadge({ status }: { status: MatchStatus }) {
     finished: t("finished"),
     cancelled: t("cancelled"),
     postponed: t("postponed"),
+    live_part: t("liveNow"),
+    break: t("halfTime"),
   }[status];
 
   return (

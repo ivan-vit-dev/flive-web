@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
-import { Search, Radio, Zap } from "lucide-react";
+import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
+import { Search, Radio, Zap, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { MatchCard } from "@/components/match/MatchCard";
 import { PublicHeader } from "@/components/layout/PublicHeader";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { getPublicMatches } from "@/lib/firebaseServices";
 import type { Match, MatchStatus } from "@/types";
 import { LIVE_STATUSES } from "@/types";
@@ -14,6 +16,8 @@ const FINISHED: MatchStatus[] = ["finished", "cancelled", "postponed"];
 
 export default function HomePage() {
   const t = useTranslations();
+  const locale = useLocale();
+  const { user } = useAuth();
   const [matches, setMatches] = useState<Match[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -22,7 +26,7 @@ export default function HomePage() {
     const timer = setTimeout(() => setLoading(false), 8000);
     getPublicMatches()
       .then(setMatches)
-      .catch(() => {})
+      .catch((err) => console.error("getPublicMatches:", err))
       .finally(() => {
         clearTimeout(timer);
         setLoading(false);
@@ -71,15 +75,26 @@ export default function HomePage() {
 
       <div className="mx-auto max-w-5xl px-4 py-8 space-y-10">
 
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-          <Input
-            className="pl-10 h-11 rounded-xl shadow-sm"
-            placeholder={t("home.search")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+        {/* Search + New match */}
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+            <Input
+              className="pl-10 h-11 rounded-xl shadow-sm"
+              placeholder={t("home.search")}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          {user && (
+            <Link
+              href={`/${locale}/dashboard/match/new`}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-xl gradient-brand text-white px-4 h-11 text-sm font-semibold shadow-md hover:opacity-90 transition-opacity"
+            >
+              <Plus className="h-4 w-4" />
+              {t("home.newMatch")}
+            </Link>
+          )}
         </div>
 
         {/* Live section */}

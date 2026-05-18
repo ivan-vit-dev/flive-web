@@ -26,8 +26,8 @@ export function PublicHeader() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border glass">
-      <div className="mx-auto max-w-6xl px-4">
-        <div className="flex h-16 items-center justify-between gap-4">
+      <div className="mx-auto max-w-5xl px-4">
+        <div className="flex h-14 items-center justify-between gap-4">
 
           {/* Logo */}
           <Link href={`/${locale}`} className="flex items-center gap-2.5 shrink-0 group">
@@ -72,7 +72,7 @@ export function PublicHeader() {
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                      className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-destructive hover:bg-accent transition-colors"
                     >
                       <LogOut className="h-4 w-4" />
                       {t("auth.logout")}
@@ -136,7 +136,7 @@ export function PublicHeader() {
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-destructive hover:bg-accent transition-colors"
                 >
                   <LogOut className="h-4 w-4" />
                   {t("auth.logout")}

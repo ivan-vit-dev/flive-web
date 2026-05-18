@@ -16,7 +16,8 @@
     "linkCopied": "Odkaz zkopírován!",
     "shareMatch": "Sdílet zápas",
     "noData": "Žádná data",
-    "error": "Chyba"
+    "error": "Chyba",
+    "dismiss": "Zavřít"
   },
   "auth": {
     "login": "Přihlásit se",
@@ -52,7 +53,8 @@
     "noUpcoming": "Žádné naplánované zápasy",
     "noFinished": "Žádné ukončené zápasy",
     "search": "Hledat podle týmu...",
-    "allMatches": "Všechny zápasy"
+    "allMatches": "Všechny zápasy",
+    "newMatch": "Nový zápas"
   },
   "match": {
     "homeTeam": "Domácí",
@@ -102,10 +104,19 @@
     "venuePlaceholder": "Např. Stadion Na Letné",
     "competitionPlaceholder": "Např. U15 krajský přebor",
     "descriptionPlaceholder": "Volitelný popis nebo poznámka...",
+    "descriptionAutoHint": "Automaticky vyplněno po zadání všech polí — můžete upravit dle libosti.",
+    "descriptionTemplate": "Živý přenos z {venue}: {homeTeam} vs {awayTeam} v soutěži {competition}. Výkop v {time} dne {date}. Sledujte každý okamžik živě!",
     "homePlayersPlaceholder": "Hráči domácích (každý na nový řádek)",
     "awayPlayersPlaceholder": "Hráči hostů (každý na nový řádek)",
+    "parts": "Části zápasu",
+    "partDuration": "Délka části (min)",
+    "partsHint1": "Jeden poločas · krátký formát pro U8–U10",
+    "partsHint2": "Dva poločasy · standardní formát fotbalu",
+    "partsHint3": "Tři třetiny · rozšířený nebo speciální formát",
+    "partsHint4": "Čtyři čtvrtiny · pohárový nebo turnajový formát",
     "eventConfig": "Konfigurace událostí",
     "eventConfigDesc": "Vyberte, které události chcete během přenosu sledovat",
+    "eventInfo": "O této události",
     "creating": "Vytváření...",
     "saving": "Ukládání...",
     "create": "Vytvořit zápas",
@@ -126,12 +137,17 @@
     "endExtraTime": "Konec prodloužení",
     "startShootout": "Zahájit penalty",
     "finishMatch": "Ukončit zápas",
+    "startPart": "Zahájit část {n}",
+    "endPart": "Ukončit část {n}",
     "confirmFinish": "Opravdu chcete ukončit zápas? Tuto akci nelze vrátit.",
     "minuteLabel": "Minuta",
     "updateMinute": "Aktualizovat minutu",
+    "clockRestored": "Čas zápasu byl obnoven z uložených dat",
     "offlineWarning": "Bez připojení — události se ukládají lokálně",
-    "pendingEvents": "Čekající události: {{count}}",
+    "pendingEvents": "Čekající události: {count}",
     "syncSuccess": "Synchronizováno",
+    "eventsLog": "Záznam zápasu",
+    "broadcastLink": "Přenos",
     "eventConfig": "Konfigurace událostí",
     "eventGroups": {
       "goals": "Góly",
@@ -151,6 +167,8 @@
     "extra_time_end": "Konec prodloužení",
     "penalty_shootout_start": "Začátek penaltového rozstřelu",
     "match_finished": "Konec zápasu",
+    "part_start": "Část zahájena",
+    "part_end": "Část ukončena",
     "goal": "Gól",
     "own_goal": "Vlastní gól",
     "yellow_card": "Žlutá karta",
@@ -175,6 +193,31 @@
     "var_goal_confirmed": "VAR — gól uznán",
     "custom_note": "Poznámka"
   },
+  "eventDescriptions": {
+    "goal": "Vstřelena branka — míč přešel brankovou čáru. Zaznamenejte střelce a přihrávajícího.",
+    "own_goal": "Hráč usměrní míč do vlastní branky. Zaznamenejte jméno hráče.",
+    "yellow_card": "Rozhodčí napomene hráče žlutou kartou. Dvě žluté karty vedou k vyloučení.",
+    "second_yellow": "Druhá žlutá karta = červená. Hráč musí okamžitě opustit hřiště.",
+    "red_card": "Přímá červená karta — hráč je okamžitě vyloučen.",
+    "substitution": "Střídání hráčů. Zaznamenejte nastupujícího i vystřídaného hráče.",
+    "corner": "Nařizuje se, když míč přejde přes brankovou čáru od obránce.",
+    "free_kick": "Přímý kop nařízený po faulu nebo přestupku.",
+    "penalty_awarded": "Rozhodčí ukazuje na penaltovou značku — faul ve vápně.",
+    "penalty_scored": "Penalta proměněna! Zaznamenejte exekutora.",
+    "penalty_missed": "Penalta v průběhu hry nebyla proměněna — vedle nebo chycena.",
+    "penalty_kick": "Kop v penaltovém rozstřelu. Zaznamenejte exekutora a výsledek.",
+    "offside": "Útočník byl při přihrávce zachycen v postavení mimo hru.",
+    "foul": "Nedovolený zákrok nebo přestupek. Zaznamenejte provinilého hráče a tým.",
+    "injury": "Hráč leží zraněný a potřebuje ošetření na hřišti.",
+    "injury_time_announced": "Čtvrtý rozhodčí signalizuje minimální délku nastavení.",
+    "shot_on_target": "Střela, která by skončila gólem bez zásahu brankáře.",
+    "shot_off_target": "Střela, která minula bránu — vedle nebo nad.",
+    "save": "Brankář zabrání gólu zákrokem. Zaznamenejte jméno brankáře.",
+    "var_review": "Videorozhodčí prověřuje situaci. Hra může být krátce přerušena.",
+    "var_goal_disallowed": "Po přezkoumání VAR byl gól neuznán.",
+    "var_goal_confirmed": "Po přezkoumání VAR byl gól potvrzen.",
+    "custom_note": "Vlastní komentář přenosu — cokoliv, co stojí za zvýraznění pro diváky."
+  },
   "eventForm": {
     "team": "Tým",
     "homeTeam": "Domácí",
@@ -193,6 +236,7 @@
     "assistPlaceholder": "Jméno nahrávajícího",
     "descriptionPlaceholder": "Volitelný popis...",
     "logEvent": "Zaznamenat událost",
-    "logging": "Zaznamenávám..."
+    "logging": "Zaznamenávám...",
+    "teamRequired": "Vyberte tým"
   }
 }

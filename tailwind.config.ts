@@ -48,6 +48,24 @@ const config: Config = {
           DEFAULT: "var(--popover)",
           foreground: "var(--popover-foreground)",
         },
+        amber: {
+          DEFAULT: "var(--amber)",
+          foreground: "var(--amber-foreground)",
+        },
+        sidebar: {
+          DEFAULT: "var(--sidebar)",
+          foreground: "var(--sidebar-foreground)",
+          primary: {
+            DEFAULT: "var(--sidebar-primary)",
+            foreground: "var(--sidebar-primary-foreground)",
+          },
+          accent: {
+            DEFAULT: "var(--sidebar-accent)",
+            foreground: "var(--sidebar-accent-foreground)",
+          },
+          border: "var(--sidebar-border)",
+          ring: "var(--sidebar-ring)",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

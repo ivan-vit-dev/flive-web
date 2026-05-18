@@ -35,7 +35,7 @@ export function MatchCard({ match, variant }: Props) {
         <div className="h-0.5 w-full gradient-brand" />
       )}
 
-      <CardContent className="pt-4 pb-2 flex-1 space-y-3">
+      <CardContent className="flex-1 space-y-3">
         <div className="flex items-start justify-between gap-2">
           <MatchStatusBadge status={match.status} />
           {match.competition && (
@@ -94,7 +94,7 @@ export function MatchCard({ match, variant }: Props) {
       <CardFooter className="pt-2 pb-4 gap-2">
         {variant === "public" && (
           <Link
-            href={`/${locale}/match/${match.id}`}
+            href={isLive ? `/${locale}/broadcast/${match.id}` : `/${locale}/match/${match.id}`}
             className={cn(
               "w-full justify-center rounded-lg px-3 py-1.5 text-sm font-medium transition-opacity text-center",
               isLive

@@ -9,12 +9,14 @@ import type { User } from "@/types";
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
+  setUser: (user: User | null) => void;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
   user: null,
   loading: true,
+  setUser: () => {},
   logout: async () => {},
 });
 
@@ -47,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout }}>
+    <AuthContext.Provider value={{ user, loading, setUser, logout }}>
       {children}
     </AuthContext.Provider>
   );

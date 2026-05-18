@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { Plus, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { buttonVariants } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MatchCard } from "@/components/match/MatchCard";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -46,10 +47,10 @@ export default function DashboardPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold tracking-tight">{t("dashboard.title")}</h1>
+        <h1 className="text-xl font-semibold">{t("dashboard.title")}</h1>
         <Link
           href={`/${locale}/dashboard/match/new`}
-          className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium gradient-brand text-white shadow-md transition-opacity hover:opacity-90"
+          className={cn(buttonVariants({ size: "lg" }), "gradient-brand text-white border-0 shadow-md hover:opacity-90 transition-opacity gap-1.5")}
         >
           <Plus className="h-4 w-4" />
           {t("dashboard.newMatch")}
@@ -57,8 +58,8 @@ export default function DashboardPage() {
       </div>
 
       <Tabs defaultValue="live">
-        <TabsList>
-          <TabsTrigger value="live" className="gap-2">
+        <TabsList className="w-full">
+          <TabsTrigger value="live" className="flex-1 gap-2">
             {live.length > 0 && (
               <span className="h-1.5 w-1.5 rounded-full bg-primary animate-live-pulse" />
             )}
@@ -69,8 +70,8 @@ export default function DashboardPage() {
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="upcoming">{t("dashboard.upcoming")}</TabsTrigger>
-          <TabsTrigger value="finished">{t("dashboard.finished")}</TabsTrigger>
+          <TabsTrigger value="upcoming" className="flex-1">{t("dashboard.upcoming")}</TabsTrigger>
+          <TabsTrigger value="finished" className="flex-1">{t("dashboard.finished")}</TabsTrigger>
         </TabsList>
 
         {loading ? (
@@ -118,7 +119,7 @@ export default function DashboardPage() {
 function EmptyState({ message }: { message: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-14 gap-3 text-center">
-      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-muted">
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted">
         <Zap className="h-5 w-5 text-muted-foreground" />
       </div>
       <p className="text-sm text-muted-foreground">{message}</p>

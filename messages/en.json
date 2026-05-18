@@ -16,7 +16,8 @@
     "linkCopied": "Link copied!",
     "shareMatch": "Share match",
     "noData": "No data",
-    "error": "Error"
+    "error": "Error",
+    "dismiss": "Dismiss"
   },
   "auth": {
     "login": "Log in",
@@ -52,7 +53,8 @@
     "noUpcoming": "No upcoming matches",
     "noFinished": "No finished matches",
     "search": "Search by team...",
-    "allMatches": "All matches"
+    "allMatches": "All matches",
+    "newMatch": "New match"
   },
   "match": {
     "homeTeam": "Home",
@@ -102,10 +104,19 @@
     "venuePlaceholder": "e.g. City Stadium",
     "competitionPlaceholder": "e.g. U15 Regional League",
     "descriptionPlaceholder": "Optional description or notes...",
+    "descriptionAutoHint": "Auto-filled when all fields above are complete — you can edit it freely.",
+    "descriptionTemplate": "Live from {venue}: {homeTeam} take on {awayTeam} in the {competition}. Kick-off at {time} on {date}. Follow every moment live!",
     "homePlayersPlaceholder": "Home players (one per line)",
     "awayPlayersPlaceholder": "Away players (one per line)",
+    "parts": "Match parts",
+    "partDuration": "Duration per part (min)",
+    "partsHint1": "Single period · short format for U8–U10",
+    "partsHint2": "Two halves · standard football format",
+    "partsHint3": "Three thirds · extended or special format",
+    "partsHint4": "Four quarters · cup or tournament format",
     "eventConfig": "Event configuration",
     "eventConfigDesc": "Choose which events you want to track during the broadcast",
+    "eventInfo": "About this event",
     "creating": "Creating...",
     "saving": "Saving...",
     "create": "Create match",
@@ -126,12 +137,17 @@
     "endExtraTime": "End extra time",
     "startShootout": "Start penalty shootout",
     "finishMatch": "Finish match",
+    "startPart": "Start part {n}",
+    "endPart": "End part {n}",
     "confirmFinish": "Are you sure you want to finish the match? This cannot be undone.",
     "minuteLabel": "Minute",
     "updateMinute": "Update minute",
+    "clockRestored": "Match clock restored from saved data",
     "offlineWarning": "No connection — events are saved locally",
-    "pendingEvents": "Pending events: {{count}}",
+    "pendingEvents": "Pending events: {count}",
     "syncSuccess": "Synced",
+    "eventsLog": "Match log",
+    "broadcastLink": "Broadcast",
     "eventConfig": "Event settings",
     "eventGroups": {
       "goals": "Goals",
@@ -151,6 +167,8 @@
     "extra_time_end": "Extra time ended",
     "penalty_shootout_start": "Penalty shootout",
     "match_finished": "Final whistle",
+    "part_start": "Part started",
+    "part_end": "Part ended",
     "goal": "Goal",
     "own_goal": "Own goal",
     "yellow_card": "Yellow card",
@@ -175,6 +193,31 @@
     "var_goal_confirmed": "VAR — goal confirmed",
     "custom_note": "Note"
   },
+  "eventDescriptions": {
+    "goal": "A goal has been scored — the ball crossed the goal line. Log the scorer and the assist.",
+    "own_goal": "A player redirects the ball into their own net. Log the player's name.",
+    "yellow_card": "The referee cautions a player with a yellow card. Two yellows result in a red.",
+    "second_yellow": "A second yellow card leads to an automatic red — the player is sent off.",
+    "red_card": "A straight red card dismissal. The player must leave the pitch immediately.",
+    "substitution": "A player swap. Log the player coming on and the one going off.",
+    "corner": "Awarded when the ball goes out over the goal line off a defender.",
+    "free_kick": "A set-piece kick awarded following a foul or infringement.",
+    "penalty_awarded": "The referee points to the spot — a foul inside the box.",
+    "penalty_scored": "The penalty kick finds the net! Log the taker.",
+    "penalty_missed": "The penalty is off target or saved during open play.",
+    "penalty_kick": "A kick in the penalty shootout. Log the taker and the result.",
+    "offside": "An attacker is caught in an offside position when the ball is played.",
+    "foul": "An illegal challenge or infringement. Log the player and team responsible.",
+    "injury": "A player is down and requires medical attention on the pitch.",
+    "injury_time_announced": "The fourth official signals the minimum additional minutes to be played.",
+    "shot_on_target": "A strike that would have gone in without the goalkeeper's intervention.",
+    "shot_off_target": "A shot that misses the target — wide or over the bar.",
+    "save": "The goalkeeper denies a goal. Log the keeper's name.",
+    "var_review": "The Video Assistant Referee is checking an incident. Play may pause briefly.",
+    "var_goal_disallowed": "After VAR review, the goal has been ruled out.",
+    "var_goal_confirmed": "After VAR review, the goal stands and is confirmed.",
+    "custom_note": "A custom broadcaster note — anything worth highlighting for viewers."
+  },
   "eventForm": {
     "team": "Team",
     "homeTeam": "Home",
@@ -193,6 +236,7 @@
     "assistPlaceholder": "Assisting player",
     "descriptionPlaceholder": "Optional description...",
     "logEvent": "Log event",
-    "logging": "Logging..."
+    "logging": "Logging...",
+    "teamRequired": "Please select a team"
   }
 }
