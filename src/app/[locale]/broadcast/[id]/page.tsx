@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Copy, QrCode } from "lucide-react";
@@ -28,6 +28,12 @@ export default function BroadcastPage() {
       .then(setMatch)
       .finally(() => setLoading(false));
   }, [id]);
+
+  // Stable callback — EventFeed calls this whenever the match doc updates in Firestore,
+  // keeping score, status, and timer in sync without polling.
+  const handleMatchUpdate = useCallback((updated: Match) => {
+    setMatch(updated);
+  }, []);
 
   const copyLink = async () => {
     await navigator.clipboard.writeText(matchUrl);
@@ -58,27 +64,34 @@ export default function BroadcastPage() {
     <>
       <PublicHeader />
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-6">
-        <ScoreBoard match={match} />
-        <MatchProgress match={match} />
-
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="gap-2" onClick={copyLink}>
-            <Copy className="h-4 w-4" />
-            {t("common.copyLink")}
-          </Button>
-          <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowQr(!showQr)}>
-            <QrCode className="h-4 w-4" />
-            QR
-          </Button>
+        <div className="rounded-xl border bg-card p-4 space-y-3">
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-sm font-medium text-muted-foreground">{t("broadcast.shareWith")}</p>
+            <div className="flex gap-2 shrink-0">
+              <Button
+                size="sm"
+                className="gradient-brand text-white shadow-sm hover:opacity-90 transition-opacity gap-2"
+                onClick={copyLink}
+              >
+                <Copy className="h-4 w-4" />
+                {t("common.copyLink")}
+              </Button>
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowQr(!showQr)}>
+                <QrCode className="h-4 w-4" />
+                QR
+              </Button>
+            </div>
+          </div>
+          {showQr && (
+            <div className="flex justify-center pt-1 pb-2">
+              <QRCodeSVG value={matchUrl} size={180} />
+            </div>
+          )}
         </div>
 
-        {showQr && (
-          <div className="flex justify-center rounded-xl border bg-white p-4">
-            <QRCodeSVG value={matchUrl} size={180} />
-          </div>
-        )}
-
-        <EventFeed match={match} variant="broadcast" />
+        <ScoreBoard match={match} liveVariant="red" />
+        <MatchProgress match={match} />
+        <EventFeed match={match} newestFirst onMatchUpdate={handleMatchUpdate} />
       </div>
     </>
   );

@@ -9,8 +9,8 @@ import { Input } from "@/components/ui/input";
 import { EventBadge } from "./EventBadge";
 import { EventFeedItem } from "./EventFeedItem";
 import { EventForm } from "@/components/forms/EventForm";
-import { addMatchEvent, updateMatchStatus, writeMatchSummary, getMatchEvents, deleteMatchEvent } from "@/lib/firebaseServices";
-import { getBroadcastSession, setBroadcastSession, clearBroadcastSession, saveMatchClock, clearMatchClock } from "@/lib/utils";
+import { addMatchEvent, updateMatchStatus, updateMatchClock, writeMatchSummary, getMatchEvents, deleteMatchEvent } from "@/lib/firebaseServices";
+import { cn, getBroadcastSession, setBroadcastSession, clearBroadcastSession, saveMatchClock, clearMatchClock } from "@/lib/utils";
 import type { Match, MatchEvent, MatchEventType, MatchStatus, BroadcastSession, PendingEvent } from "@/types";
 import { EVENT_GROUPS } from "@/types";
 import toast from "react-hot-toast";
@@ -26,6 +26,15 @@ const COMPLEX_EVENTS: MatchEventType[] = [
 
 const RUNNING_STATUSES: MatchStatus[] = ["live_first", "live_second", "extra_time", "penalty_shootout", "live_part"];
 const ACTIVE_STATUSES: MatchStatus[] = ["live_first", "half_time", "live_second", "extra_time", "penalty_shootout", "live_part", "break"];
+
+// Derives elapsed seconds from Firestore timestamps — same logic as ScoreBoard.
+// Used as fallback when no localStorage clock exists (e.g. fresh page load / reload).
+function computeMatchSeconds(m: Match): number {
+  const base = m.currentMinute * 60;
+  if (!RUNNING_STATUSES.includes(m.status) || !m.currentMinuteAt) return base;
+  const elapsed = Math.floor((Date.now() - m.currentMinuteAt.toDate().getTime()) / 1000);
+  return base + elapsed;
+}
 
 interface Props {
   match: Match;
@@ -47,7 +56,9 @@ export function LiveControlPanel({ match, onMatchUpdated, onSecondsChange }: Pro
     ) {
       return Math.floor(session.clock.seconds + (Date.now() - session.clock.savedAt) / 1000);
     }
-    return match.currentMinute * 60;
+    // No localStorage clock: derive elapsed time from Firestore so reporter and
+    // broadcast page stay in sync on fresh load / reload.
+    return computeMatchSeconds(match);
   });
   const [clockRestoredFromCache, setClockRestoredFromCache] = useState(() => {
     const session = getBroadcastSession();
@@ -89,7 +100,7 @@ export function LiveControlPanel({ match, onMatchUpdated, onSecondsChange }: Pro
     prevStatusRef.current = match.status;
     if (!statusChanged) return;
     if (!RUNNING_STATUSES.includes(match.status)) return;
-    setSeconds(match.currentMinute * 60);
+    setSeconds(computeMatchSeconds(match));
     setClockRestoredFromCache(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [match.status]);
@@ -101,12 +112,16 @@ export function LiveControlPanel({ match, onMatchUpdated, onSecondsChange }: Pro
     return () => clearInterval(id);
   }, [match.status]);
 
-  // Persist running clock to localStorage every 30 s so it survives tab close / reload
+  // Persist running clock to localStorage + Firestore every 30 s.
+  // localStorage survives tab close / reload; Firestore keeps broadcast viewers in sync.
   useEffect(() => {
     if (!RUNNING_STATUSES.includes(match.status)) return;
-    const id = setInterval(() => saveMatchClock(secondsRef.current), 30_000);
+    const id = setInterval(() => {
+      saveMatchClock(secondsRef.current);
+      void updateMatchClock(match.id, secondsRef.current);
+    }, 30_000);
     return () => clearInterval(id);
-  }, [match.status]);
+  }, [match.status, match.id]);
 
   // Write session to localStorage on mount
   useEffect(() => {
@@ -177,7 +192,7 @@ export function LiveControlPanel({ match, onMatchUpdated, onSecondsChange }: Pro
     }
   };
 
-  const handleSimpleEvent = async (type: MatchEventType) => {
+  const handleSimpleEvent = async (type: MatchEventType, partNumber?: number) => {
     await logEvent({
       matchId: match.id,
       type,
@@ -189,6 +204,7 @@ export function LiveControlPanel({ match, onMatchUpdated, onSecondsChange }: Pro
       playerOutName: null,
       shootoutResult: null,
       description: null,
+      partNumber: partNumber ?? null,
     });
   };
 
@@ -197,7 +213,8 @@ export function LiveControlPanel({ match, onMatchUpdated, onSecondsChange }: Pro
       currentMinute: minute,
       ...(nextPart !== undefined ? { currentPart: nextPart } : {}),
     });
-    await handleSimpleEvent(eventType);
+    const isPartEvent = eventType === "part_start" || eventType === "part_end";
+    await handleSimpleEvent(eventType, isPartEvent ? nextPart : undefined);
     if (status === "finished") {
       const allEvents = await getMatchEvents(match.id);
       await writeMatchSummary(match.id, allEvents, match);
@@ -240,18 +257,17 @@ export function LiveControlPanel({ match, onMatchUpdated, onSecondsChange }: Pro
       )}
 
       {/* Main control row: phase buttons | timer | broadcast */}
-      <div className="grid grid-cols-3 items-center gap-2">
-        {/* Left: phase buttons */}
-        <div className="flex flex-wrap gap-2">
+      <div className="flex items-center gap-4">
+        {/* Left: phase buttons — shrink-0 so they never wrap */}
+        <div className="flex gap-2 shrink-0">
           {phaseButtons.map((btn) => (
             <Button
               key={btn.label}
-              variant={btn.primary ? "default" : "outline"}
-              className={
-                btn.primary
-                  ? "h-auto py-2 px-4 gradient-brand text-white border-0 shadow-md hover:opacity-90 transition-opacity"
-                  : "h-auto py-2 px-4"
-              }
+              variant={btn.variant === "brand" ? "default" : btn.variant === "destructive" ? "destructive" : "outline"}
+              className={cn(
+                "h-auto py-2 px-4",
+                btn.variant === "brand" && "gradient-brand text-white border-0 shadow-md hover:opacity-90 transition-opacity"
+              )}
               onClick={() => handlePhaseChange(btn.nextStatus, btn.eventType, btn.nextPart)}
             >
               {btn.label}
@@ -260,14 +276,19 @@ export function LiveControlPanel({ match, onMatchUpdated, onSecondsChange }: Pro
         </div>
 
         {/* Center: timer */}
-        <div className="flex flex-col items-center justify-center">
+        <div className="flex flex-1 flex-col items-center justify-center">
           {ACTIVE_STATUSES.includes(match.status) ? (
             <>
               <span className="font-mono text-4xl font-bold tabular-nums text-primary">
                 {String(minute).padStart(2, "0")}:{String(seconds % 60).padStart(2, "0")}
               </span>
               {(match.status === "half_time" || match.status === "break") && (
-                <span className="text-xs text-muted-foreground">{t("match.halfTime")}</span>
+                <span className="text-xs text-muted-foreground">
+                  {((match.status === "half_time" && (match.currentPart ?? 1) >= 2) ||
+                    (match.status === "break" && (match.currentPart ?? 0) >= (match.parts ?? 2)))
+                    ? t("match.afterLastPart")
+                    : t("match.partBreak")}
+                </span>
               )}
             </>
           ) : match.status === "scheduled" ? (
@@ -286,7 +307,7 @@ export function LiveControlPanel({ match, onMatchUpdated, onSecondsChange }: Pro
         </div>
 
         {/* Right: broadcast link */}
-        <div className="flex justify-end">
+        <div className="shrink-0">
           <Link
             href={`/${locale}/broadcast/${match.id}`}
             target="_blank"
@@ -377,7 +398,7 @@ interface PhaseButton {
   label: string;
   nextStatus: MatchStatus;
   eventType: MatchEventType;
-  primary: boolean;
+  variant: "brand" | "outline" | "destructive";
   nextPart?: number;
 }
 
@@ -390,9 +411,9 @@ function getPhaseButtons(match: Match, t: ReturnType<typeof useTranslations>): P
   if (parts === 1) {
     switch (status) {
       case "scheduled":
-        return [{ label: t("control.startMatch"), nextStatus: "live_part", eventType: "match_start", primary: true, nextPart: 1 }];
+        return [{ label: t("control.startMatch"), nextStatus: "live_part", eventType: "match_start", variant: "brand", nextPart: 1 }];
       case "live_part":
-        return [{ label: t("control.endMatch"), nextStatus: "finished", eventType: "match_finished", primary: false, nextPart: 1 }];
+        return [{ label: t("control.finishMatch"), nextStatus: "finished", eventType: "match_finished", variant: "brand", nextPart: 1 }];
       default:
         return [];
     }
@@ -402,41 +423,64 @@ function getPhaseButtons(match: Match, t: ReturnType<typeof useTranslations>): P
   if (parts > 2 || status === "live_part" || status === "break") {
     switch (status) {
       case "scheduled":
-        return [{ label: t("control.startPart", { n: 1 }), nextStatus: "live_part", eventType: "match_start", primary: true, nextPart: 1 }];
+        return [{ label: t("control.startPart", { n: 1 }), nextStatus: "live_part", eventType: "match_start", variant: "brand", nextPart: 1 }];
       case "live_part":
         if (currentPart >= parts) {
-          return [{ label: t("control.finishMatch"), nextStatus: "finished", eventType: "match_finished", primary: false, nextPart: currentPart }];
+          // Last part — offer both a clean end-of-part and a direct finish
+          return [
+            { label: t("control.endPart", { n: currentPart }), nextStatus: "break", eventType: "part_end", variant: "outline", nextPart: currentPart },
+            { label: t("control.finishMatch"), nextStatus: "finished", eventType: "match_finished", variant: "destructive", nextPart: currentPart },
+          ];
         }
-        return [{ label: t("control.endPart", { n: currentPart }), nextStatus: "break", eventType: "part_end", primary: false, nextPart: currentPart }];
+        return [{ label: t("control.endPart", { n: currentPart }), nextStatus: "break", eventType: "part_end", variant: "outline", nextPart: currentPart }];
       case "break": {
+        if (currentPart >= parts) {
+          return [{ label: t("control.finishMatch"), nextStatus: "finished", eventType: "match_finished", variant: "brand" }];
+        }
         const next = currentPart + 1;
-        return [{ label: t("control.startPart", { n: next }), nextStatus: "live_part", eventType: "part_start", primary: true, nextPart: next }];
+        return [{ label: t("control.startPart", { n: next }), nextStatus: "live_part", eventType: "part_start", variant: "brand", nextPart: next }];
       }
       default:
         return [];
     }
   }
 
-  // Standard 2-half logic (with currentPart tracking)
+  // Standard 2-half logic
   switch (status) {
     case "scheduled":
-      return [{ label: t("control.startMatch"), nextStatus: "live_first", eventType: "match_start", primary: true, nextPart: 1 }];
+      return [{ label: t("control.startMatch"), nextStatus: "live_first", eventType: "match_start", variant: "brand", nextPart: 1 }];
     case "live_first":
-      return [{ label: t("control.endFirstHalf"), nextStatus: "half_time", eventType: "first_half_end", primary: false, nextPart: 1 }];
+      return [{ label: t("control.endFirstHalf"), nextStatus: "half_time", eventType: "first_half_end", variant: "outline", nextPart: 1 }];
     case "half_time":
-      return [{ label: t("control.startSecondHalf"), nextStatus: "live_second", eventType: "second_half_start", primary: true, nextPart: 2 }];
+      if (currentPart >= 3) {
+        // After extra time — choose: finish or start shootout
+        return [
+          { label: t("control.finishMatch"), nextStatus: "finished", eventType: "match_finished", variant: "outline" },
+          { label: t("control.startShootout"), nextStatus: "penalty_shootout", eventType: "penalty_shootout_start", variant: "brand" },
+        ];
+      }
+      if (currentPart >= 2) {
+        // After second half — choose: finish, extra time, or shootout
+        return [
+          { label: t("control.finishMatch"), nextStatus: "finished", eventType: "match_finished", variant: "outline" },
+          { label: t("control.startExtraTime"), nextStatus: "extra_time", eventType: "extra_time_start", variant: "brand" },
+          { label: t("control.startShootout"), nextStatus: "penalty_shootout", eventType: "penalty_shootout_start", variant: "outline" },
+        ];
+      }
+      // After first half
+      return [{ label: t("control.startSecondHalf"), nextStatus: "live_second", eventType: "second_half_start", variant: "brand", nextPart: 2 }];
     case "live_second":
       return [
-        { label: t("control.endMatch"), nextStatus: "finished", eventType: "match_finished", primary: false, nextPart: 2 },
-        { label: t("control.startExtraTime"), nextStatus: "extra_time", eventType: "extra_time_start", primary: false },
+        { label: t("control.endSecondHalf"), nextStatus: "half_time", eventType: "full_time", variant: "outline", nextPart: 2 },
+        { label: t("control.finishMatch"), nextStatus: "finished", eventType: "match_finished", variant: "destructive", nextPart: 2 },
       ];
     case "extra_time":
       return [
-        { label: t("control.endExtraTime"), nextStatus: "finished", eventType: "match_finished", primary: false },
-        { label: t("control.startShootout"), nextStatus: "penalty_shootout", eventType: "penalty_shootout_start", primary: false },
+        { label: t("control.endExtraTime"), nextStatus: "half_time", eventType: "extra_time_end", variant: "outline", nextPart: 3 },
+        { label: t("control.finishMatch"), nextStatus: "finished", eventType: "match_finished", variant: "destructive" },
       ];
     case "penalty_shootout":
-      return [{ label: t("control.finishMatch"), nextStatus: "finished", eventType: "match_finished", primary: true }];
+      return [{ label: t("control.finishMatch"), nextStatus: "finished", eventType: "match_finished", variant: "brand" }];
     default:
       return [];
   }

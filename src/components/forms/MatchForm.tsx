@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslations } from "next-intl";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +21,7 @@ import {
 import type { Match, MatchEventType } from "@/types";
 import { GAMEPLAY_EVENTS, EVENT_GROUPS } from "@/types";
 import { cn } from "@/lib/utils";
+import { MyTeamPicker } from "@/components/settings/MyTeamPicker";
 
 const schema = z.object({
   homeTeam: z.string().min(1),
@@ -43,6 +44,8 @@ interface Props {
   mode: "create" | "edit";
   /** When provided the form renders with this id and omits the internal submit button. */
   formId?: string;
+  /** When provided (create mode only), shows the MyTeamPicker to auto-fill home team fields. */
+  reporterUid?: string;
 }
 
 function toDatetimeLocal(ts: { toDate?: () => Date } | undefined): string {
@@ -58,12 +61,13 @@ function nowDatetimeLocal(): string {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
 }
 
-export function MatchForm({ defaultValues, onSubmit, mode, formId }: Props) {
+export function MatchForm({ defaultValues, onSubmit, mode, formId, reporterUid }: Props) {
   const t = useTranslations();
   const [enabledEventTypes, setEnabledEventTypes] = useState<MatchEventType[]>(
     defaultValues?.enabledEventTypes ?? GAMEPLAY_EVENTS
   );
   const [infoGroup, setInfoGroup] = useState<string | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const lastAutoDescRef = useRef<string>("");
 
   const {
@@ -94,6 +98,8 @@ export function MatchForm({ defaultValues, onSubmit, mode, formId }: Props) {
   const venue = watch("venue");
   const competition = watch("competition");
   const scheduledAt = watch("scheduledAt");
+  const homePlayers = watch("homePlayers");
+  const awayPlayers = watch("awayPlayers");
 
   useEffect(() => {
     if (mode !== "create") return;
@@ -125,15 +131,37 @@ export function MatchForm({ defaultValues, onSubmit, mode, formId }: Props) {
         onSubmit={handleSubmit(async (values) => { await onSubmit(values, enabledEventTypes); })}
         className="space-y-6"
       >
+        {reporterUid && (
+          <div className="rounded-xl border bg-card p-4 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl gradient-brand text-white shadow-sm">
+                <Users className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-medium">{t("settings.teamPicker")}</p>
+                <p className="text-xs text-muted-foreground truncate">{t("matchForm.teamPickerHint")}</p>
+              </div>
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              className="shrink-0 gradient-brand text-white border-0 shadow-sm hover:opacity-90 transition-opacity"
+              onClick={() => setPickerOpen(true)}
+            >
+              {t("settings.teamPicker")}
+            </Button>
+          </div>
+        )}
+
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label>{t("match.homeTeam")} *</Label>
-            <Input {...register("homeTeam")} placeholder={t("matchForm.homeTeamPlaceholder")} />
+            <Input {...register("homeTeam")} value={homeTeam} placeholder={t("matchForm.homeTeamPlaceholder")} />
             {errors.homeTeam && <p className="text-xs text-destructive">{t("matchForm.validation.homeTeamRequired")}</p>}
           </div>
           <div className="space-y-1.5">
             <Label>{t("match.awayTeam")} *</Label>
-            <Input {...register("awayTeam")} placeholder={t("matchForm.awayTeamPlaceholder")} />
+            <Input {...register("awayTeam")} value={awayTeam} placeholder={t("matchForm.awayTeamPlaceholder")} />
             {errors.awayTeam && <p className="text-xs text-destructive">{t("matchForm.validation.awayTeamRequired")}</p>}
           </div>
         </div>
@@ -145,7 +173,7 @@ export function MatchForm({ defaultValues, onSubmit, mode, formId }: Props) {
           </div>
           <div className="space-y-1.5">
             <Label>{t("match.venue")}</Label>
-            <Input {...register("venue")} placeholder={t("matchForm.venuePlaceholder")} />
+            <Input {...register("venue")} value={venue ?? ""} placeholder={t("matchForm.venuePlaceholder")} />
           </div>
         </div>
 
@@ -213,11 +241,11 @@ export function MatchForm({ defaultValues, onSubmit, mode, formId }: Props) {
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label>{t("match.homePlayers")}</Label>
-            <Textarea {...register("homePlayers")} placeholder={t("matchForm.homePlayersPlaceholder")} rows={4} />
+            <Textarea {...register("homePlayers")} value={homePlayers ?? ""} placeholder={t("matchForm.homePlayersPlaceholder")} rows={4} />
           </div>
           <div className="space-y-1.5">
             <Label>{t("match.awayPlayers")}</Label>
-            <Textarea {...register("awayPlayers")} placeholder={t("matchForm.awayPlayersPlaceholder")} rows={4} />
+            <Textarea {...register("awayPlayers")} value={awayPlayers ?? ""} placeholder={t("matchForm.awayPlayersPlaceholder")} rows={4} />
           </div>
         </div>
 
@@ -282,6 +310,41 @@ export function MatchForm({ defaultValues, onSubmit, mode, formId }: Props) {
           </Button>
         )}
       </form>
+
+      {/* My Team picker dialog */}
+      {reporterUid && (
+        <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
+          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>{t("settings.teamPicker")}</DialogTitle>
+            </DialogHeader>
+            <MyTeamPicker
+              reporterUid={reporterUid}
+              onApply={(team, players, pitch, competition, side) => {
+                const playerLines = players.length > 0
+                  ? players.map((p) => (p.jerseyNumber != null ? `${p.jerseyNumber}. ${p.name}` : p.name)).join("\n")
+                  : "";
+                setValue("homeTeam", "");
+                setValue("homePlayers", "");
+                setValue("awayTeam", "");
+                setValue("awayPlayers", "");
+                setValue("venue", "");
+                setValue("competition", "");
+                if (side === "home") {
+                  setValue("homeTeam", team.name);
+                  if (playerLines) setValue("homePlayers", playerLines);
+                  if (pitch) setValue("venue", pitch.name);
+                } else {
+                  setValue("awayTeam", team.name);
+                  if (playerLines) setValue("awayPlayers", playerLines);
+                }
+                if (competition) setValue("competition", competition.name);
+                setPickerOpen(false);
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Mobile: per-group event description dialog */}
       <Dialog open={!!infoGroup} onOpenChange={(open) => { if (!open) setInfoGroup(null); }}>

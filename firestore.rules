@@ -10,9 +10,20 @@ service cloud.firestore {
       return isAuth() && request.auth.uid == matchData.reporterId;
     }
 
-    // Users: each reporter can only read/write their own doc
+    // Users: each reporter can only read/write their own doc and sub-collections
     match /users/{userId} {
       allow read, write: if isAuth() && request.auth.uid == userId;
+
+      match /teams/{teamId} {
+        allow read, write: if isAuth() && request.auth.uid == userId;
+
+        match /players/{playerId} {
+          allow read, write: if isAuth() && request.auth.uid == userId;
+        }
+        match /pitches/{pitchId} {
+          allow read, write: if isAuth() && request.auth.uid == userId;
+        }
+      }
     }
 
     // Matches: public read, authenticated create, owner-only update/delete

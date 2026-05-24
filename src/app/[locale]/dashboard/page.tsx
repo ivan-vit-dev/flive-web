@@ -84,8 +84,8 @@ export default function DashboardPage() {
               {live.length === 0 ? (
                 <EmptyState message={t("dashboard.noLive")} />
               ) : (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {live.map((m) => <MatchCard key={m.id} match={m} variant="reporter" />)}
+                <div className="rounded-xl border border-border overflow-hidden divide-y divide-border">
+                  {live.map((m, i) => <MatchCard key={m.id} match={m} variant="reporter" index={i} />)}
                 </div>
               )}
             </TabsContent>
@@ -94,8 +94,8 @@ export default function DashboardPage() {
               {upcoming.length === 0 ? (
                 <EmptyState message={t("dashboard.noUpcoming")} />
               ) : (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {upcoming.map((m) => <MatchCard key={m.id} match={m} variant="reporter" />)}
+                <div className="rounded-xl border border-border overflow-hidden divide-y divide-border">
+                  {upcoming.map((m, i) => <MatchCard key={m.id} match={m} variant="reporter" index={i} />)}
                 </div>
               )}
             </TabsContent>
@@ -104,8 +104,8 @@ export default function DashboardPage() {
               {finished.length === 0 ? (
                 <EmptyState message={t("dashboard.noFinished")} />
               ) : (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {finished.map((m) => <MatchCard key={m.id} match={m} variant="reporter" />)}
+                <div className="rounded-xl border border-border overflow-hidden divide-y divide-border">
+                  {finished.map((m, i) => <MatchCard key={m.id} match={m} variant="reporter" index={i} />)}
                 </div>
               )}
             </TabsContent>

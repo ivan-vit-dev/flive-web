@@ -182,9 +182,37 @@ export interface MatchEvent {
   playerOutName: string | null;
   shootoutResult: ShootoutResult | null;
   description: string | null;
+  partNumber?: number | null;
 
   createdAt: Timestamp;
   updatedAt: Timestamp;
+}
+
+// ─── Settings — Teams ────────────────────────────────────────────────────────
+
+export interface Team {
+  id: string;
+  name: string;
+  createdAt: Timestamp;
+}
+
+export interface TeamPlayer {
+  id: string;
+  name: string;
+  jerseyNumber: number | null;
+  createdAt: Timestamp;
+}
+
+export interface TeamPitch {
+  id: string;
+  name: string;
+  createdAt: Timestamp;
+}
+
+export interface TeamCompetition {
+  id: string;
+  name: string;
+  createdAt: Timestamp;
 }
 
 // ─── Offline broadcast session ────────────────────────────────────────────────

@@ -11,10 +11,11 @@ import {
   orderBy,
   serverTimestamp,
   increment,
+  writeBatch,
   Timestamp,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import type { Match, MatchEvent, MatchEventType, MatchStatus, MatchSummary, User } from "@/types";
+import type { Match, MatchEvent, MatchEventType, MatchStatus, MatchSummary, User, Team, TeamPlayer, TeamPitch, TeamCompetition } from "@/types";
 import { GAMEPLAY_EVENTS } from "@/types";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -25,6 +26,22 @@ function docToMatch(id: string, data: Record<string, unknown>): Match {
 
 function docToEvent(id: string, data: Record<string, unknown>): MatchEvent {
   return { id, ...data } as MatchEvent;
+}
+
+function docToTeam(id: string, data: Record<string, unknown>): Team {
+  return { id, ...data } as Team;
+}
+
+function docToTeamPlayer(id: string, data: Record<string, unknown>): TeamPlayer {
+  return { id, ...data } as TeamPlayer;
+}
+
+function docToTeamPitch(id: string, data: Record<string, unknown>): TeamPitch {
+  return { id, ...data } as TeamPitch;
+}
+
+function docToTeamCompetition(id: string, data: Record<string, unknown>): TeamCompetition {
+  return { id, ...data } as TeamCompetition;
 }
 
 // ─── Users ───────────────────────────────────────────────────────────────────
@@ -124,6 +141,17 @@ export async function updateMatchStatus(matchId: string, status: MatchStatus, ex
     status,
     ...(extra ?? {}),
     ...(extra?.currentMinute !== undefined ? { currentMinuteAt: serverTimestamp() } : {}),
+    updatedAt: serverTimestamp(),
+  });
+}
+
+// Syncs the reporter's running clock to Firestore so broadcast viewers stay in sync.
+// currentMinuteAt is set to when the current minute *started* (not just now), so that
+// computeSeconds on the broadcast page always gives the exact elapsed seconds.
+export async function updateMatchClock(matchId: string, seconds: number): Promise<void> {
+  await updateDoc(doc(db, "matches", matchId), {
+    currentMinute: Math.floor(seconds / 60),
+    currentMinuteAt: Timestamp.fromMillis(Date.now() - (seconds % 60) * 1000),
     updatedAt: serverTimestamp(),
   });
 }
@@ -245,4 +273,94 @@ export async function writeMatchSummary(matchId: string, events: MatchEvent[], m
     status: "finished" as MatchStatus,
     updatedAt: serverTimestamp(),
   });
+}
+
+// ─── Settings — Teams / Players / Pitches ────────────────────────────────────
+
+export async function getTeams(uid: string): Promise<Team[]> {
+  const q = query(collection(db, "users", uid, "teams"), orderBy("createdAt", "asc"));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => docToTeam(d.id, d.data()));
+}
+
+export async function addTeam(uid: string, name: string): Promise<string> {
+  const ref = await addDoc(collection(db, "users", uid, "teams"), {
+    name,
+    createdAt: serverTimestamp(),
+  });
+  await updateDoc(ref, { id: ref.id });
+  return ref.id;
+}
+
+export async function deleteTeam(uid: string, teamId: string): Promise<void> {
+  const [playersSnap, pitchesSnap, competitionsSnap] = await Promise.all([
+    getDocs(collection(db, "users", uid, "teams", teamId, "players")),
+    getDocs(collection(db, "users", uid, "teams", teamId, "pitches")),
+    getDocs(collection(db, "users", uid, "teams", teamId, "competitions")),
+  ]);
+  // Batch limit is 500 ops; fine for typical youth-sport roster sizes
+  const batch = writeBatch(db);
+  playersSnap.docs.forEach((d) => batch.delete(d.ref));
+  pitchesSnap.docs.forEach((d) => batch.delete(d.ref));
+  competitionsSnap.docs.forEach((d) => batch.delete(d.ref));
+  batch.delete(doc(db, "users", uid, "teams", teamId));
+  await batch.commit();
+}
+
+export async function getTeamPlayers(uid: string, teamId: string): Promise<TeamPlayer[]> {
+  const q = query(collection(db, "users", uid, "teams", teamId, "players"), orderBy("createdAt", "asc"));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => docToTeamPlayer(d.id, d.data()));
+}
+
+export async function addTeamPlayer(uid: string, teamId: string, name: string, jerseyNumber: number | null): Promise<string> {
+  const ref = await addDoc(collection(db, "users", uid, "teams", teamId, "players"), {
+    name,
+    jerseyNumber,
+    createdAt: serverTimestamp(),
+  });
+  await updateDoc(ref, { id: ref.id });
+  return ref.id;
+}
+
+export async function removeTeamPlayer(uid: string, teamId: string, playerId: string): Promise<void> {
+  await deleteDoc(doc(db, "users", uid, "teams", teamId, "players", playerId));
+}
+
+export async function getTeamPitches(uid: string, teamId: string): Promise<TeamPitch[]> {
+  const q = query(collection(db, "users", uid, "teams", teamId, "pitches"), orderBy("createdAt", "asc"));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => docToTeamPitch(d.id, d.data()));
+}
+
+export async function addTeamPitch(uid: string, teamId: string, name: string): Promise<string> {
+  const ref = await addDoc(collection(db, "users", uid, "teams", teamId, "pitches"), {
+    name,
+    createdAt: serverTimestamp(),
+  });
+  await updateDoc(ref, { id: ref.id });
+  return ref.id;
+}
+
+export async function removeTeamPitch(uid: string, teamId: string, pitchId: string): Promise<void> {
+  await deleteDoc(doc(db, "users", uid, "teams", teamId, "pitches", pitchId));
+}
+
+export async function getTeamCompetitions(uid: string, teamId: string): Promise<TeamCompetition[]> {
+  const q = query(collection(db, "users", uid, "teams", teamId, "competitions"), orderBy("createdAt", "asc"));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => docToTeamCompetition(d.id, d.data()));
+}
+
+export async function addTeamCompetition(uid: string, teamId: string, name: string): Promise<string> {
+  const ref = await addDoc(collection(db, "users", uid, "teams", teamId, "competitions"), {
+    name,
+    createdAt: serverTimestamp(),
+  });
+  await updateDoc(ref, { id: ref.id });
+  return ref.id;
+}
+
+export async function removeTeamCompetition(uid: string, teamId: string, competitionId: string): Promise<void> {
+  await deleteDoc(doc(db, "users", uid, "teams", teamId, "competitions", competitionId));
 }

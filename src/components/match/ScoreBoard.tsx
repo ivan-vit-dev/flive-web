@@ -13,13 +13,16 @@ function computeSeconds(m: Match): number {
   return base + elapsed;
 }
 
-export function ScoreBoard({ match, liveSeconds }: { match: Match; liveSeconds?: number }) {
+export function ScoreBoard({ match, liveSeconds, liveVariant }: { match: Match; liveSeconds?: number; liveVariant?: "red" }) {
   const t = useTranslations("match");
   const isLive = LIVE_STATUSES.includes(match.status);
   const isRunning = RUNNING_STATUSES.includes(match.status);
 
   const [seconds, setSeconds] = useState(() => liveSeconds ?? computeSeconds(match));
 
+  // Re-sync whenever the reporter pushes a clock update to Firestore (every 30 s).
+  // currentMinuteAtMs changes on every updateMatchClock write, triggering a correction.
+  const currentMinuteAtMs = match.currentMinuteAt?.toMillis() ?? 0;
   useEffect(() => {
     if (liveSeconds !== undefined) {
       setSeconds(liveSeconds);
@@ -27,7 +30,7 @@ export function ScoreBoard({ match, liveSeconds }: { match: Match; liveSeconds?:
       setSeconds(computeSeconds(match));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [liveSeconds, match.currentMinute, match.status]);
+  }, [liveSeconds, match.currentMinute, match.status, currentMinuteAtMs]);
 
   useEffect(() => {
     if (liveSeconds !== undefined) return;
@@ -42,7 +45,14 @@ export function ScoreBoard({ match, liveSeconds }: { match: Match; liveSeconds?:
   return (
     <div className="rounded-xl border bg-card p-6 text-center space-y-3">
       <div className="flex items-center justify-center gap-2">
-        <MatchStatusBadge status={match.status} />
+        <MatchStatusBadge
+          status={match.status}
+          afterLastPart={
+            (match.status === "half_time" && (match.currentPart ?? 1) >= 2) ||
+            (match.status === "break" && (match.currentPart ?? 0) >= (match.parts ?? 2))
+          }
+          liveVariant={liveVariant}
+        />
         {isLive && seconds > 0 && (
           <span className="text-sm text-muted-foreground font-mono">
             {mm}:{ss}
@@ -60,20 +70,21 @@ export function ScoreBoard({ match, liveSeconds }: { match: Match; liveSeconds?:
         <span className="text-lg font-semibold w-32 text-left truncate">{match.awayTeam}</span>
       </div>
 
-      {match.status === "penalty_shootout" && (
-        <p className="text-sm text-muted-foreground">
-          {t("shootoutScore", {
-            home: match.homeShootoutScore,
-            away: match.awayShootoutScore,
-          })}
-        </p>
+      {(match.status === "penalty_shootout" || match.homeShootoutScore > 0 || match.awayShootoutScore > 0) && (
+        <div className="border-t border-border pt-3 space-y-1">
+          <p className="text-xs text-muted-foreground">{t("penaltyShoots")}</p>
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-2xl font-bold tabular-nums">{match.homeShootoutScore}</span>
+            <span className="text-lg text-muted-foreground">:</span>
+            <span className="text-2xl font-bold tabular-nums">{match.awayShootoutScore}</span>
+          </div>
+        </div>
       )}
 
-      {match.competition && (
-        <p className="text-xs text-muted-foreground">{match.competition}</p>
-      )}
-      {match.venue && (
-        <p className="text-xs text-muted-foreground">{match.venue}</p>
+      {(match.competition || match.venue) && (
+        <p className="text-xs text-muted-foreground">
+          {[match.competition, match.venue].filter(Boolean).join(" · ")}
+        </p>
       )}
       {match.description && (
         <p className="text-sm text-muted-foreground border-t border-border pt-3 mt-1">{match.description}</p>

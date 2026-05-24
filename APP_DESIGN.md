@@ -120,6 +120,7 @@ Used for: multi-select / single-select option groups — event type configuratio
 ### Rules
 
 - Form submit buttons: always `w-full` + `.gradient-brand text-white`
+- Settings add-action buttons (Add team, Add player, Add pitch, Add competition — both the section toggle and the inline form submit): `gradient-brand text-white border-0 shadow-sm hover:opacity-90 transition-opacity` — these are the primary CTA within their collapsible panel, not `outline`
 - Destructive confirmation buttons: `variant="destructive"` inside a Dialog
 - Icon-only buttons always include `<span className="sr-only">` for accessibility
 - Focus state is automatic: `border-ring ring-3 ring-ring/50`
@@ -389,6 +390,41 @@ No dividing lines — rows are visually separated by alternating backgrounds (`b
 - Each row: `rounded-lg px-3 py-2`
 - Remove button: `X` icon, `text-muted-foreground hover:text-destructive`, appears on every row
 - Score-affecting events (goal, own_goal, penalty_scored, penalty_kick) automatically reverse the score counter on delete
+
+### Broadcast Share Panel
+
+Placed at the top of the broadcast page content area, above ScoreBoard. Lets the reporter share the live URL with viewers.
+
+```tsx
+<div className="rounded-xl border bg-card p-4 space-y-3">
+  <div className="flex items-center justify-between gap-4">
+    <p className="text-sm font-medium text-muted-foreground">{t("broadcast.shareWith")}</p>
+    <div className="flex gap-2 shrink-0">
+      {/* Copy Link — primary CTA */}
+      <Button size="sm" className="gradient-brand text-white shadow-sm hover:opacity-90 transition-opacity gap-2">
+        <Copy className="h-4 w-4" />
+        {t("common.copyLink")}
+      </Button>
+      {/* QR toggle — secondary */}
+      <Button variant="outline" size="sm" className="gap-2">
+        <QrCode className="h-4 w-4" />
+        QR
+      </Button>
+    </div>
+  </div>
+  {/* QR code expands inline below the button row when toggled */}
+  <div className="flex justify-center pt-1 pb-2">
+    <QRCodeSVG value={url} size={180} />
+  </div>
+</div>
+```
+
+- Panel: `rounded-xl border bg-card` — Info/Status card style, no ring or shadow
+- Copy Link uses `gradient-brand text-white` — primary sharing action / CTA
+- QR uses `variant="outline"` — secondary toggle; QR code renders inline inside the panel, not below it
+- Label uses `text-sm font-medium text-muted-foreground`; i18n key `broadcast.shareWith`
+
+---
 
 ### Live Control Panel Buttons
 

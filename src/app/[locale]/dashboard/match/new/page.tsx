@@ -61,7 +61,7 @@ export default function NewMatchPage() {
           <CardTitle>{t("createTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <MatchForm mode="create" formId={FORM_ID} onSubmit={handleSubmit} />
+          <MatchForm mode="create" formId={FORM_ID} onSubmit={handleSubmit} reporterUid={user?.uid} />
         </CardContent>
       </Card>
 

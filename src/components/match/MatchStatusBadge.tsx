@@ -19,14 +19,16 @@ const STATUS_STYLES: Record<MatchStatus, string> = {
 
 const LIVE_STATUSES: MatchStatus[] = ["live_first", "live_second", "extra_time", "penalty_shootout", "live_part"];
 
-export function MatchStatusBadge({ status }: { status: MatchStatus }) {
+export function MatchStatusBadge({ status, afterLastPart, liveVariant }: { status: MatchStatus; afterLastPart?: boolean; liveVariant?: "red" }) {
   const t = useTranslations("match");
   const isLive = LIVE_STATUSES.includes(status);
+
+  const breakLabel = afterLastPart ? t("afterLastPart") : t("partBreak");
 
   const label = {
     scheduled: t("scheduled"),
     live_first: t("liveNow"),
-    half_time: t("halfTime"),
+    half_time: breakLabel,
     live_second: t("liveNow"),
     extra_time: t("extraTime"),
     penalty_shootout: t("penaltyShootout"),
@@ -34,11 +36,15 @@ export function MatchStatusBadge({ status }: { status: MatchStatus }) {
     cancelled: t("cancelled"),
     postponed: t("postponed"),
     live_part: t("liveNow"),
-    break: t("halfTime"),
+    break: breakLabel,
   }[status];
 
+  const liveStyle = isLive && liveVariant === "red"
+    ? "bg-destructive text-destructive-foreground"
+    : STATUS_STYLES[status];
+
   return (
-    <Badge className={cn("gap-1.5 font-semibold text-xs tracking-wide", STATUS_STYLES[status])}>
+    <Badge className={cn("gap-1.5 font-semibold text-xs tracking-wide", liveStyle)}>
       {isLive && (
         <span className="h-1.5 w-1.5 rounded-full bg-current animate-live-pulse" />
       )}

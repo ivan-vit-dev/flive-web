@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EventBadge } from "@/components/match/EventBadge";
 import type { Match, MatchEvent, MatchEventType, ShootoutResult } from "@/types";
 import { cn } from "@/lib/utils";
@@ -64,6 +63,10 @@ export function EventForm({ type, match, minute, onSubmit, onClose }: Props) {
   const onFormSubmit = async (values: FormValues) => {
     if (needsTeam && !values.team) {
       setError("team", { message: t("eventForm.teamRequired") });
+      return;
+    }
+    if (needsShootoutResult && !values.shootoutResult) {
+      setError("shootoutResult", { message: t("eventForm.shootoutResultRequired") });
       return;
     }
     await onSubmit({
@@ -141,16 +144,26 @@ export function EventForm({ type, match, minute, onSubmit, onClose }: Props) {
           {needsShootoutResult && (
             <div className="space-y-1.5">
               <Label>{t("eventForm.shootoutResult")}</Label>
-              <Select onValueChange={(v) => setValue("shootoutResult", v as ShootoutResult)}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t("eventForm.shootoutResult")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="scored">{t("eventForm.scored")}</SelectItem>
-                  <SelectItem value="missed">{t("eventForm.missed")}</SelectItem>
-                  <SelectItem value="saved">{t("eventForm.saved")}</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="grid grid-cols-2 gap-2">
+                {(["scored", "missed"] as const).map((result) => (
+                  <button
+                    key={result}
+                    type="button"
+                    onClick={() => { setValue("shootoutResult", result); setError("shootoutResult", {}); }}
+                    className={cn(
+                      "rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
+                      watch("shootoutResult") === result
+                        ? "gradient-brand text-white border-transparent"
+                        : "border-border hover:border-foreground"
+                    )}
+                  >
+                    {t(`eventForm.${result}` as Parameters<typeof t>[0])}
+                  </button>
+                ))}
+              </div>
+              {errors.shootoutResult?.message && (
+                <p className="text-xs text-destructive">{errors.shootoutResult.message}</p>
+              )}
             </div>
           )}
 

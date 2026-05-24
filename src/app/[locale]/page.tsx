@@ -40,9 +40,18 @@ export default function HomePage() {
       m.awayTeam.toLowerCase().includes(search.toLowerCase())
   );
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+
   const live = filtered.filter((m) => LIVE_STATUSES.includes(m.status));
   const upcoming = filtered.filter((m) => m.status === "scheduled");
-  const finished = filtered.filter((m) => FINISHED.includes(m.status));
+  const finishedToday = filtered.filter((m) => {
+    if (!FINISHED.includes(m.status)) return false;
+    const d = m.scheduledAt?.toDate?.();
+    return d != null && d >= today && d < tomorrow;
+  });
 
   if (loading) {
     return (
@@ -73,7 +82,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-5xl px-4 py-8 space-y-10">
+      <div className="mx-auto max-w-5xl px-4 py-8 space-y-8">
 
         {/* Search + New match */}
         <div className="flex items-center gap-3">
@@ -99,7 +108,7 @@ export default function HomePage() {
 
         {/* Live section */}
         {live.length > 0 && (
-          <section className="space-y-4">
+          <section className="space-y-3">
             <div className="flex items-center gap-2.5">
               <span className="h-2 w-2 rounded-full bg-primary animate-live-pulse shrink-0" />
               <h2 className="text-base font-semibold">{t("home.liveMatches")}</h2>
@@ -107,38 +116,48 @@ export default function HomePage() {
                 {live.length}
               </span>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {live.map((m) => <MatchCard key={m.id} match={m} variant="public" />)}
+            <div className="rounded-xl border border-border overflow-hidden divide-y divide-border">
+              {live.map((m, i) => <MatchCard key={m.id} match={m} variant="public" index={i} />)}
             </div>
           </section>
         )}
 
         {/* Upcoming section */}
         {upcoming.length > 0 && (
-          <section className="space-y-4">
+          <section className="space-y-3">
             <div className="flex items-center gap-2.5">
               <h2 className="text-base font-semibold">{t("home.upcomingMatches")}</h2>
               <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
                 {upcoming.length}
               </span>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {upcoming.map((m) => <MatchCard key={m.id} match={m} variant="public" />)}
+            <div className="rounded-xl border border-border overflow-hidden divide-y divide-border">
+              {upcoming.map((m, i) => <MatchCard key={m.id} match={m} variant="public" index={i} />)}
             </div>
           </section>
         )}
 
-        {/* Finished section */}
-        {finished.length > 0 && (
-          <section className="space-y-4">
-            <div className="flex items-center gap-2.5">
-              <h2 className="text-base font-semibold">{t("home.finishedMatches")}</h2>
-              <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-                {finished.length}
-              </span>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {finished.map((m) => <MatchCard key={m.id} match={m} variant="public" />)}
+        {/* Finished today */}
+        {finishedToday.length > 0 && (
+          <section className="space-y-3">
+            {live.length > 0 ? (
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-border" />
+                <span className="text-xs text-muted-foreground font-medium px-1">
+                  {t("home.finishedToday")}
+                </span>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+            ) : (
+              <div className="flex items-center gap-2.5">
+                <h2 className="text-base font-semibold">{t("home.finishedMatches")}</h2>
+                <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                  {finishedToday.length}
+                </span>
+              </div>
+            )}
+            <div className="rounded-xl border border-border overflow-hidden divide-y divide-border">
+              {finishedToday.map((m, i) => <MatchCard key={m.id} match={m} variant="public" index={i} />)}
             </div>
           </section>
         )}

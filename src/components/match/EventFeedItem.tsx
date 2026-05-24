@@ -12,8 +12,8 @@ interface Props {
   event: MatchEvent;
   homeTeam: string;
   awayTeam: string;
-  index: number;
-  onRemove: (event: MatchEvent) => void;
+  index?: number;
+  onRemove?: (event: MatchEvent) => void;
 }
 
 function MinutePill({ minute, addedTime }: { minute: number; addedTime: number | null }) {
@@ -24,12 +24,13 @@ function MinutePill({ minute, addedTime }: { minute: number; addedTime: number |
   );
 }
 
-export function EventFeedItem({ event, homeTeam, awayTeam, index, onRemove }: Props) {
+export function EventFeedItem({ event, homeTeam, awayTeam, index = 0, onRemove }: Props) {
   const t = useTranslations("events");
+  const tForm = useTranslations("eventForm");
   const isTimeline = TIMELINE_EVENTS.includes(event.type);
   const rowBg = index % 2 === 0 ? "bg-muted" : "";
 
-  const removeBtn = (
+  const removeBtn = onRemove ? (
     <button
       onClick={() => onRemove(event)}
       className="shrink-0 rounded-md p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive-subtle transition-colors"
@@ -37,7 +38,13 @@ export function EventFeedItem({ event, homeTeam, awayTeam, index, onRemove }: Pr
     >
       <X className="h-4 w-4" />
     </button>
-  );
+  ) : null;
+
+  const timelineLabel = (() => {
+    if (event.type === "part_start" && event.partNumber) return t("part_start_n", { n: event.partNumber });
+    if (event.type === "part_end" && event.partNumber) return t("part_end_n", { n: event.partNumber });
+    return t(event.type as Parameters<typeof t>[0]);
+  })();
 
   // Structural timeline events — centered, no time, no remove
   if (isTimeline) {
@@ -45,7 +52,7 @@ export function EventFeedItem({ event, homeTeam, awayTeam, index, onRemove }: Pr
       <li className="flex items-center justify-center gap-2 px-2 py-2 rounded-lg bg-secondary">
         <EventBadge type={event.type} size="sm" />
         <span className="text-xs font-medium text-secondary-foreground">
-          {t(event.type as Parameters<typeof t>[0])}
+          {timelineLabel}
         </span>
       </li>
     );
@@ -57,7 +64,7 @@ export function EventFeedItem({ event, homeTeam, awayTeam, index, onRemove }: Pr
     : event.team;
 
   const teamLabel = event.team === "home" ? homeTeam : event.team === "away" ? awayTeam : null;
-  const hasDetails = event.playerName || event.assistName || event.playerOutName || event.description || event.shootoutResult;
+  const hasDetails = !!(event.playerName || event.assistName || event.playerOutName || event.description);
 
   const isHome = displayTeam === "home";
   const isAway = displayTeam === "away";
@@ -83,13 +90,22 @@ export function EventFeedItem({ event, homeTeam, awayTeam, index, onRemove }: Pr
           {event.playerName && <span>{event.playerName}</span>}
           {event.assistName && <span> · {event.assistName}</span>}
           {event.playerOutName && <span> ⇄ {event.playerOutName}</span>}
-          {event.shootoutResult && (
-            <span className={cn(event.shootoutResult === "scored" ? "text-primary" : "text-destructive")}>
-              {event.shootoutResult === "scored" ? " ✓ Scored" : event.shootoutResult === "saved" ? " ✗ Saved" : " ✗ Missed"}
-            </span>
-          )}
           {event.description && <span className="italic"> {event.description}</span>}
         </p>
+      )}
+      {event.shootoutResult && (
+        <div className={cn("mt-1 flex items-center gap-1.5", contentAlign)}>
+          <span className={cn(
+            "inline-flex items-center gap-1.5 text-xs font-semibold",
+            event.shootoutResult === "scored" ? "text-green-500" : "text-red-500"
+          )}>
+            <span className={cn(
+              "h-2.5 w-2.5 rounded-full shrink-0",
+              event.shootoutResult === "scored" ? "bg-green-500" : "bg-red-500"
+            )} />
+            {event.shootoutResult === "scored" ? tForm("scored") : tForm("missed")}
+          </span>
+        </div>
       )}
     </li>
   );

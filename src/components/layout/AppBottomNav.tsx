@@ -4,12 +4,13 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { LayoutDashboard, PlusCircle } from "lucide-react";
+import { LayoutDashboard, PlusCircle, Settings2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems: { href: string; icon: React.ElementType; label: string; exact?: boolean }[] = [
   { href: "/dashboard", icon: LayoutDashboard, label: "dashboard.title", exact: true },
   { href: "/dashboard/match/new", icon: PlusCircle, label: "dashboard.newMatch" },
+  { href: "/dashboard/settings", icon: Settings2, label: "settings.title", exact: true },
 ];
 
 export function AppBottomNav() {
