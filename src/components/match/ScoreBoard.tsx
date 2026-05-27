@@ -39,8 +39,17 @@ export function ScoreBoard({ match, liveSeconds, liveVariant }: { match: Match; 
     return () => clearInterval(id);
   }, [liveSeconds, isRunning]);
 
-  const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
-  const ss = String(seconds % 60).padStart(2, "0");
+  const partDuration = match.partDuration ?? 45;
+  const currentPart = match.currentPart ?? 1;
+  const CAPPED_STATUSES: MatchStatus[] = ["live_first", "live_second", "live_part"];
+  const isRunningPart = CAPPED_STATUSES.includes(match.status);
+  const partEndSecs = currentPart * partDuration * 60;
+  const clampedSecs = isRunningPart ? Math.min(seconds, partEndSecs) : seconds;
+  const extraSecs   = isRunningPart ? Math.max(0, seconds - partEndSecs) : 0;
+  const mm = String(Math.floor(clampedSecs / 60)).padStart(2, "0");
+  const ss = String(clampedSecs % 60).padStart(2, "0");
+  const exMm = Math.floor(extraSecs / 60);
+  const exSs = String(extraSecs % 60).padStart(2, "0");
 
   return (
     <div className="rounded-xl border bg-card p-6 text-center space-y-3">
@@ -55,19 +64,19 @@ export function ScoreBoard({ match, liveSeconds, liveVariant }: { match: Match; 
         />
         {isLive && seconds > 0 && (
           <span className="text-sm text-muted-foreground font-mono">
-            {mm}:{ss}
+            {mm}:{ss}{extraSecs > 0 && ` +${exMm > 0 ? `${exMm}:` : ""}${exSs}`}
           </span>
         )}
       </div>
 
       <div className="flex items-center justify-center gap-4">
-        <span className="text-lg font-semibold w-32 text-right truncate">{match.homeTeam}</span>
-        <div className="flex items-center gap-2">
+        <span className="text-lg font-semibold flex-1 min-w-0 text-right">{match.homeTeam}</span>
+        <div className="flex items-center gap-2 shrink-0">
           <span className="text-5xl font-bold tabular-nums">{match.homeScore}</span>
           <span className="text-3xl text-muted-foreground">:</span>
           <span className="text-5xl font-bold tabular-nums">{match.awayScore}</span>
         </div>
-        <span className="text-lg font-semibold w-32 text-left truncate">{match.awayTeam}</span>
+        <span className="text-lg font-semibold flex-1 min-w-0 text-left">{match.awayTeam}</span>
       </div>
 
       {(match.status === "penalty_shootout" || match.homeShootoutScore > 0 || match.awayShootoutScore > 0) && (
@@ -87,7 +96,11 @@ export function ScoreBoard({ match, liveSeconds, liveVariant }: { match: Match; 
         </p>
       )}
       {match.description && (
-        <p className="text-sm text-muted-foreground border-t border-border pt-3 mt-1">{match.description}</p>
+        <div className="text-sm text-muted-foreground border-t border-border pt-3 mt-1 space-y-0.5">
+          {match.description.split("\n").filter(l => l.trim()).map((line, i) => (
+            <p key={i}>{line}</p>
+          ))}
+        </div>
       )}
     </div>
   );

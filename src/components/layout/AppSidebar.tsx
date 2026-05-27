@@ -20,12 +20,12 @@ export function AppSidebar() {
   return (
     <aside className="hidden md:flex h-full w-64 flex-col border-r border-sidebar-border bg-sidebar">
       {/* Brand */}
-      <div className="flex h-14 items-center gap-2.5 border-b border-sidebar-border px-4">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg gradient-brand text-white shadow-sm">
+      <Link href={`/${locale}`} className="flex h-14 items-center gap-2.5 border-b border-sidebar-border px-4 group">
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg gradient-brand text-white shadow-sm transition-shadow group-hover:shadow-md">
           <Radio className="h-3.5 w-3.5" />
         </div>
         <span className="font-bold text-base gradient-text">{t("common.appName")}</span>
-      </div>
+      </Link>
 
       {/* Nav */}
       <nav className="flex-1 space-y-0.5 p-3">

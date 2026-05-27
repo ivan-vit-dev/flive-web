@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
-import { WifiOff, Radio } from "lucide-react";
+import { WifiOff, Radio, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EventBadge } from "./EventBadge";
@@ -72,6 +72,21 @@ export function LiveControlPanel({ match, onMatchUpdated, onSecondsChange }: Pro
   const [events, setEvents] = useState<MatchEvent[]>([]);
 
   const minute = Math.floor(seconds / 60);
+
+  // Capped-display values: while a part is running, freeze the clock at the part duration and
+  // show elapsed-over-time as a separate counter (e.g. 15:00  +2:30).
+  const partDuration = match.partDuration ?? 45;
+  const currentPart = match.currentPart ?? 1;
+  const CAPPED_STATUSES: MatchStatus[] = ["live_first", "live_second", "live_part"];
+  const isRunningPart = CAPPED_STATUSES.includes(match.status);
+  const partEndSecs = currentPart * partDuration * 60;
+  const clampedSecs = isRunningPart ? Math.min(seconds, partEndSecs) : seconds;
+  const extraSecs   = isRunningPart ? Math.max(0, seconds - partEndSecs) : 0;
+  const displayMin  = Math.floor(clampedSecs / 60);
+  const displaySec  = clampedSecs % 60;
+  const extraMin    = Math.floor(extraSecs / 60);
+  const extraSecond = extraSecs % 60;
+
   const prevStatusRef = useRef(match.status);
   const secondsRef = useRef(seconds);
 
@@ -94,13 +109,15 @@ export function LiveControlPanel({ match, onMatchUpdated, onSecondsChange }: Pro
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Reset timer when match phase actually transitions (skip on mount to preserve restored clock)
+  // Reset timer when match phase actually transitions (skip on mount to preserve restored clock).
+  // Always start from Firestore currentMinute * 60 — never add elapsed time here, which would
+  // introduce clock-skew offset between client and server.
   useEffect(() => {
     const statusChanged = match.status !== prevStatusRef.current;
     prevStatusRef.current = match.status;
     if (!statusChanged) return;
     if (!RUNNING_STATUSES.includes(match.status)) return;
-    setSeconds(computeMatchSeconds(match));
+    setSeconds(match.currentMinute * 60);
     setClockRestoredFromCache(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [match.status]);
@@ -209,8 +226,12 @@ export function LiveControlPanel({ match, onMatchUpdated, onSecondsChange }: Pro
   };
 
   const handlePhaseChange = async (status: MatchStatus, eventType: MatchEventType, nextPart?: number) => {
+    // Parts after the first always start at the cumulative end of the preceding parts,
+    // ignoring any extra time the previous part ran.
+    const isNewPart = (status === "live_second" || status === "live_part") && nextPart !== undefined && nextPart > 1;
+    const startMinute = isNewPart ? (nextPart - 1) * partDuration : minute;
     await updateMatchStatus(match.id, status, {
-      currentMinute: minute,
+      currentMinute: startMinute,
       ...(nextPart !== undefined ? { currentPart: nextPart } : {}),
     });
     const isPartEvent = eventType === "part_start" || eventType === "part_end";
@@ -256,32 +277,26 @@ export function LiveControlPanel({ match, onMatchUpdated, onSecondsChange }: Pro
         </div>
       )}
 
-      {/* Main control row: phase buttons | timer | broadcast */}
-      <div className="flex items-center gap-4">
-        {/* Left: phase buttons — shrink-0 so they never wrap */}
-        <div className="flex gap-2 shrink-0">
-          {phaseButtons.map((btn) => (
-            <Button
-              key={btn.label}
-              variant={btn.variant === "brand" ? "default" : btn.variant === "destructive" ? "destructive" : "outline"}
-              className={cn(
-                "h-auto py-2 px-4",
-                btn.variant === "brand" && "gradient-brand text-white border-0 shadow-md hover:opacity-90 transition-opacity"
-              )}
-              onClick={() => handlePhaseChange(btn.nextStatus, btn.eventType, btn.nextPart)}
-            >
-              {btn.label}
-            </Button>
-          ))}
-        </div>
-
-        {/* Center: timer */}
-        <div className="flex flex-1 flex-col items-center justify-center">
+      {/* Main control row
+            Mobile:  [         timer         ] ← row 1, full width
+                     [phase buttons] [bcast]   ← row 2
+            Desktop: [phase] [    timer    ] [bcast] ← single row
+      */}
+      <div className="flex flex-wrap items-center gap-3">
+        {/* Timer — own row on mobile (w-full + order-first), flex-1 center on desktop */}
+        <div className="w-full flex flex-col items-center justify-center order-first sm:w-auto sm:flex-1 sm:order-2">
           {ACTIVE_STATUSES.includes(match.status) ? (
             <>
-              <span className="font-mono text-4xl font-bold tabular-nums text-primary">
-                {String(minute).padStart(2, "0")}:{String(seconds % 60).padStart(2, "0")}
-              </span>
+              <div className="flex items-baseline gap-3">
+                <span className="font-mono text-4xl font-bold tabular-nums text-primary">
+                  {String(displayMin).padStart(2, "0")}:{String(displaySec).padStart(2, "0")}
+                </span>
+                {extraSecs > 0 && (
+                  <span className="font-mono text-2xl font-bold tabular-nums text-amber-500">
+                    +{extraMin > 0 ? `${extraMin}:` : ""}{String(extraSecond).padStart(2, "0")}
+                  </span>
+                )}
+              </div>
               {(match.status === "half_time" || match.status === "break") && (
                 <span className="text-xs text-muted-foreground">
                   {((match.status === "half_time" && (match.currentPart ?? 1) >= 2) ||
@@ -306,15 +321,32 @@ export function LiveControlPanel({ match, onMatchUpdated, onSecondsChange }: Pro
           ) : null}
         </div>
 
-        {/* Right: broadcast link */}
-        <div className="shrink-0">
+        {/* Phase buttons — row 2 left on mobile, row 1 left on desktop */}
+        <div className="flex gap-2 flex-wrap shrink-0 sm:order-1">
+          {phaseButtons.map((btn) => (
+            <Button
+              key={btn.label}
+              variant={btn.variant === "brand" ? "default" : btn.variant === "destructive" ? "destructive" : "outline"}
+              className={cn(
+                "h-auto py-2 px-4",
+                btn.variant === "brand" && "gradient-brand text-white border-0 shadow-md hover:opacity-90 transition-opacity"
+              )}
+              onClick={() => handlePhaseChange(btn.nextStatus, btn.eventType, btn.nextPart)}
+            >
+              {btn.label}
+            </Button>
+          ))}
+        </div>
+
+        {/* Broadcast link — row 2 right on mobile (ml-auto), row 1 right on desktop */}
+        <div className="shrink-0 ml-auto sm:ml-0 sm:order-3">
           <Link
             href={`/${locale}/broadcast/${match.id}`}
             target="_blank"
-            className="inline-flex shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium gradient-brand text-white shadow-md transition-opacity hover:opacity-90"
+            className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium gradient-brand text-white shadow-md transition-opacity hover:opacity-90"
           >
             <Radio className="h-4 w-4" />
-            {t("control.broadcastLink")}
+            <span className="hidden sm:inline">{t("control.broadcastLink")}</span>
           </Link>
         </div>
       </div>
@@ -388,6 +420,19 @@ export function LiveControlPanel({ match, onMatchUpdated, onSecondsChange }: Pro
               ))}
             </ul>
           </div>
+        </div>
+      )}
+
+      {/* Post-match navigation */}
+      {match.status === "finished" && (
+        <div className="border-t pt-4">
+          <Link
+            href={`/${locale}/dashboard`}
+            className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium gradient-brand text-white shadow-md transition-opacity hover:opacity-90"
+          >
+            <LayoutDashboard className="h-4 w-4" />
+            {t("dashboard.title")}
+          </Link>
         </div>
       )}
     </div>

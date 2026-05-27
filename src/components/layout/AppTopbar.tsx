@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { LogOut } from "lucide-react";
+import { LogOut, Radio } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./ThemeToggle";
 import { LocaleSwitcher } from "./LocaleSwitcher";
@@ -21,21 +21,26 @@ export function AppTopbar() {
 
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-card px-4 gap-4">
-      <div className="flex items-center gap-2.5 text-sm min-w-0">
+      {/* Logo — visible on mobile where sidebar is hidden, links to home */}
+      <Link href={`/${locale}`} className="flex items-center gap-2 shrink-0 group md:hidden">
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg gradient-brand text-white shadow-sm transition-shadow group-hover:shadow-md">
+          <Radio className="h-3.5 w-3.5" />
+        </div>
+        <span className="font-bold text-sm gradient-text">{t("common.appName")}</span>
+      </Link>
+
+      {/* User info — links to dashboard on desktop */}
+      <Link
+        href={`/${locale}/dashboard`}
+        className="hidden md:flex items-center gap-2.5 text-sm min-w-0 rounded-md px-2 py-1 hover:bg-accent transition-colors"
+      >
         <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full gradient-brand text-white text-xs font-bold shadow-sm">
           {user?.displayName?.charAt(0).toUpperCase() ?? "U"}
         </div>
-        <span className="truncate hidden sm:block font-medium">{user?.displayName ?? user?.email}</span>
-      </div>
+        <span className="truncate font-medium">{user?.displayName ?? user?.email}</span>
+      </Link>
 
-      <div className="flex items-center gap-1">
-        <Link
-          href={`/${locale}`}
-          className="hidden sm:inline-flex items-center text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md hover:bg-accent"
-        >
-          ← {t("home.title")}
-        </Link>
-        <div className="hidden sm:block mx-1 h-4 w-px bg-border" />
+      <div className="flex items-center gap-1 ml-auto">
         <LocaleSwitcher />
         <ThemeToggle />
         <div className="mx-1 h-4 w-px bg-border" />
