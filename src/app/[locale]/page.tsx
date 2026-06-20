@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import { Search, Radio, Zap, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { MatchCard } from "@/components/match/MatchCard";
 import { PublicHeader } from "@/components/layout/PublicHeader";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -21,6 +22,12 @@ export default function HomePage() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+
+  const fetchMatches = () => {
+    getPublicMatches()
+      .then(setMatches)
+      .catch((err) => console.error("getPublicMatches:", err));
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 8000);
@@ -57,8 +64,20 @@ export default function HomePage() {
     return (
       <>
         <PublicHeader />
-        <div className="flex h-64 items-center justify-center">
-          <div className="h-7 w-7 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        <div className="relative overflow-hidden border-b border-border">
+          <div className="absolute inset-0 gradient-hero" />
+          <div className="relative mx-auto max-w-5xl px-4 py-10 sm:py-14 space-y-4">
+            <Skeleton className="h-7 w-36 rounded-full" />
+            <Skeleton className="h-10 w-56" />
+          </div>
+        </div>
+        <div className="mx-auto max-w-5xl px-4 py-8 space-y-3">
+          <Skeleton className="h-11 w-full rounded-xl" />
+          <div className="rounded-xl border border-border overflow-hidden divide-y divide-border">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-12 w-full rounded-none" />
+            ))}
+          </div>
         </div>
       </>
     );
@@ -132,7 +151,7 @@ export default function HomePage() {
               </span>
             </div>
             <div className="rounded-xl border border-border overflow-hidden divide-y divide-border">
-              {upcoming.map((m, i) => <MatchCard key={m.id} match={m} variant="public" index={i} />)}
+              {upcoming.map((m, i) => <MatchCard key={m.id} match={m} variant="public" index={i} onRefresh={fetchMatches} />)}
             </div>
           </section>
         )}

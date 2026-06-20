@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FLive — Live Football Broadcaster</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --violet:      oklch(0.72 0.27 285);
+      --violet-dark: oklch(0.50 0.27 285);
+      --pink:        oklch(0.78 0.28 315);
+      --amber:       oklch(0.82 0.18 72);
+      --bg:          oklch(0.12 0.022 285);
+      --surface:     oklch(0.16 0.020 285);
+      --surface-2:   oklch(0.20 0.018 285);
+      --border:      oklch(1 0 0 / 9%);
+      --text:        oklch(0.95 0.005 285);
+      --muted:       oklch(0.62 0.020 285);
+      --grad-brand:  linear-gradient(135deg, oklch(0.72 0.27 285) 0%, oklch(0.78 0.28 315) 100%);
+      --grad-amber:  linear-gradient(135deg, oklch(0.82 0.18 72) 0%, oklch(0.75 0.20 50) 100%);
+      --glow:        0 0 40px oklch(0.72 0.27 285 / 0.30);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Layout helpers ── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+    .section    { padding: 96px 0; }
+    .section + .section { border-top: 1px solid var(--border); }
+
+    /* ── Gradient text ── */
+    .grad-text {
+      background: var(--grad-brand);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .grad-text-amber {
+      background: var(--grad-amber);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: oklch(0.12 0.022 285 / 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 60px;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 800; font-size: 1.25rem; letter-spacing: -0.02em;
+      text-decoration: none;
+    }
+    .logo-box {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: var(--grad-brand);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem; font-weight: 900; color: #fff;
+    }
+    .logo span { color: var(--text); }
+    .nav-links { display: flex; gap: 6px; }
+    .nav-links a {
+      color: var(--muted); text-decoration: none; font-size: 0.875rem;
+      font-weight: 500; padding: 6px 12px; border-radius: 8px;
+      transition: color 0.2s, background 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); background: var(--surface-2); }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 120px 0 96px;
+      position: relative; overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 70% 60% at 20% 40%, oklch(0.72 0.27 285 / 0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 80% 70%, oklch(0.78 0.28 315 / 0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 30% at 60% 20%, oklch(0.82 0.18 72 / 0.06) 0%, transparent 55%);
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 999px; padding: 6px 14px;
+      font-size: 0.8rem; font-weight: 500; color: var(--muted);
+      margin-bottom: 28px;
+    }
+    .live-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--violet);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 oklch(0.72 0.27 285 / 0.6); }
+      50%       { opacity: 0.85; transform: scale(1.15); box-shadow: 0 0 0 6px oklch(0.72 0.27 285 / 0); }
+    }
+    .hero h1 {
+      font-size: clamp(2.8rem, 6vw, 5rem);
+      font-weight: 900; letter-spacing: -0.04em; line-height: 1.05;
+      margin-bottom: 24px;
+    }
+    .hero-sub {
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      color: var(--muted); max-width: 580px;
+      margin-bottom: 44px; line-height: 1.7;
+    }
+    .hero-cta {
+      display: flex; gap: 12px; flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 24px; border-radius: 12px;
+      font-weight: 600; font-size: 0.95rem;
+      text-decoration: none; cursor: pointer;
+      transition: opacity 0.2s, transform 0.2s;
+      border: none;
+    }
+    .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-primary { background: var(--grad-brand); color: #fff; box-shadow: var(--glow); }
+    .btn-outline {
+      background: transparent; color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover { background: var(--surface); }
+
+    /* ── Match demo card ── */
+    .hero-demo {
+      margin-top: 72px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 24px 64px oklch(0 0 0 / 0.5), 0 0 0 1px var(--border), var(--glow);
+    }
+    .demo-topbar {
+      background: oklch(0.14 0.020 285);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .demo-topbar-left { display: flex; align-items: center; gap: 10px; }
+    .demo-topbar-left span { font-size: 0.8rem; font-weight: 600; color: var(--muted); }
+    .live-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: oklch(0.72 0.27 285 / 0.15);
+      color: var(--violet); border-radius: 6px;
+      padding: 3px 9px; font-size: 0.75rem; font-weight: 700;
+    }
+    .demo-score {
+      text-align: center; padding: 28px 20px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .demo-teams {
+      display: flex; align-items: center; justify-content: center; gap: 20px;
+      font-size: 1rem; font-weight: 600; color: var(--text);
+    }
+    .demo-scoreline {
+      font-size: 3rem; font-weight: 900; letter-spacing: -0.04em;
+      background: var(--grad-brand);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      padding: 0 20px;
+    }
+    .demo-min { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+    .demo-events { padding: 0; }
+    .demo-event {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 20px; border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+    .demo-event:last-child { border-bottom: none; }
+    .event-min {
+      width: 32px; text-align: right; font-weight: 700; font-size: 0.78rem;
+      color: var(--violet); flex-shrink: 0; font-variant-numeric: tabular-nums;
+    }
+    .event-icon { font-size: 1rem; flex-shrink: 0; }
+    .event-text { color: var(--text); }
+    .event-text small { color: var(--muted); font-size: 0.78rem; }
+
+    /* ── Section header ── */
+    .section-label {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--violet);
+      margin-bottom: 14px;
+    }
+    .section-label::before {
+      content: ''; display: block;
+      width: 20px; height: 2px;
+      background: var(--grad-brand); border-radius: 2px;
+    }
+    h2.section-title {
+      font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+      font-weight: 800; letter-spacing: -0.03em; line-height: 1.15;
+      margin-bottom: 16px;
+    }
+    .section-desc {
+      font-size: 1.05rem; color: var(--muted); max-width: 560px; line-height: 1.7;
+    }
+
+    /* ── About ── */
+    .about-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 48px;
+      align-items: center; margin-top: 64px;
+    }
+    @media (max-width: 720px) { .about-grid { grid-template-columns: 1fr; } }
+    .about-text p { color: var(--muted); line-height: 1.8; margin-bottom: 18px; }
+    .role-cards { display: flex; flex-direction: column; gap: 14px; }
+    .role-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 20px 22px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .role-card:hover { border-color: oklch(0.72 0.27 285 / 0.4); box-shadow: var(--glow); }
+    .role-card-header {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 8px;
+    }
+    .role-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; flex-shrink: 0;
+    }
+    .role-icon.reporter { background: oklch(0.72 0.27 285 / 0.15); }
+    .role-icon.viewer   { background: oklch(0.82 0.18 72 / 0.15); }
+    .role-card h3 { font-size: 0.95rem; font-weight: 700; }
+    .role-card p  { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+
+    /* ── Features ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px; margin-top: 56px;
+    }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 26px 24px;
+      transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+      position: relative; overflow: hidden;
+    }
+    .feature-card::before {
+      content: ''; position: absolute; inset: 0;
+      background: var(--grad-brand); opacity: 0;
+      transition: opacity 0.25s;
+    }
+    .feature-card:hover {
+      border-color: oklch(0.72 0.27 285 / 0.35);
+      box-shadow: 0 8px 32px oklch(0 0 0 / 0.3), var(--glow);
+      transform: translateY(-2px);
+    }
+    .feature-card:hover::before { opacity: 0.03; }
+    .feature-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; margin-bottom: 16px; position: relative; z-index: 1;
+    }
+    .feature-card h3 {
+      font-size: 1rem; font-weight: 700; margin-bottom: 8px;
+      position: relative; z-index: 1;
+    }
+    .feature-card p {
+      font-size: 0.875rem; color: var(--muted); line-height: 1.65;
+      position: relative; z-index: 1;
+    }
+    .tag {
+      display: inline-block; margin-top: 12px;
+      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em;
+      padding: 3px 8px; border-radius: 6px;
+      background: oklch(0.72 0.27 285 / 0.12);
+      color: var(--violet); position: relative; z-index: 1;
+    }
+    .tag.amber { background: oklch(0.82 0.18 72 / 0.12); color: var(--amber); }
+
+    /* ── Tech stack ── */
+    .stack-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px; margin-top: 56px;
+    }
+    .stack-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px; padding: 18px 20px;
+      display: flex; align-items: center; gap: 14px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .stack-card:hover {
+      border-color: oklch(0.72 0.27 285 / 0.3);
+      background: var(--surface-2);
+    }
+    .stack-logo {
+      width: 36px; height: 36px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; flex-shrink: 0;
+    }
+    .stack-card h4 { font-size: 0.875rem; font-weight: 700; }
+    .stack-card p  { font-size: 0.75rem; color: var(--muted); margin-top: 1px; }
+
+    /* ── Architecture ── */
+    .arch-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+      margin-top: 56px;
+    }
+    @media (max-width: 640px) { .arch-grid { grid-template-columns: 1fr; } }
+    .arch-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 24px;
+    }
+    .arch-card h3 {
+      font-size: 0.9rem; font-weight: 700; margin-bottom: 10px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .arch-card h3 span { font-size: 1rem; }
+    .arch-card ul {
+      list-style: none; display: flex; flex-direction: column; gap: 7px;
+    }
+    .arch-card li {
+      font-size: 0.83rem; color: var(--muted); line-height: 1.5;
+      padding-left: 14px; position: relative;
+    }
+    .arch-card li::before {
+      content: '—'; position: absolute; left: 0;
+      color: oklch(0.72 0.27 285 / 0.5);
+    }
+    code {
+      font-family: 'Menlo', 'Consolas', monospace;
+      font-size: 0.78em;
+      background: oklch(0.72 0.27 285 / 0.12);
+      color: var(--violet);
+      padding: 1px 5px; border-radius: 4px;
+    }
+
+    /* ── Data model ── */
+    .firestore-tree {
+      background: oklch(0.10 0.018 285);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 28px 32px;
+      font-family: 'Menlo', 'Consolas', monospace;
+      font-size: 0.82rem; line-height: 2;
+      margin-top: 56px;
+    }
+    .tree-line { display: flex; align-items: center; gap: 8px; }
+    .tree-key   { color: var(--violet); }
+    .tree-val   { color: var(--muted); }
+    .tree-coll  { color: var(--amber); font-weight: 600; }
+    .tree-indent { padding-left: 24px; }
+    .tree-indent2 { padding-left: 48px; }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 48px 0;
+    }
+    .footer-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap;
+    }
+    .footer-brand { font-weight: 700; font-size: 1rem; }
+    .footer-meta  { font-size: 0.8rem; color: var(--muted); }
+    .footer-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+    .pill {
+      font-size: 0.72rem; font-weight: 600;
+      padding: 4px 10px; border-radius: 999px;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    /* ── Divider ── */
+    hr { border: none; border-top: 1px solid var(--border); }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="container nav-inner">
+      <a href="#" class="logo">
+        <div class="logo-box">F</div>
+        <span>F<span class="grad-text">Live</span></span>
+      </a>
+      <div class="nav-links">
+        <a href="#about">About</a>
+        <a href="#features">Features</a>
+        <a href="#stack">Tech Stack</a>
+        <a href="#architecture">Architecture</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="container">
+      <div class="hero-badge">
+        <div class="live-dot"></div>
+        Live Match Broadcasting · Amateur Football
+      </div>
+      <h1>
+        Your club's<br />
+        <span class="grad-text">live broadcast</span><br />
+        platform
+      </h1>
+      <p class="hero-sub">
+        FLive brings real-time match commentary to amateur and youth football clubs
+        with no TV budget, no technical know-how required — just a phone and a reporter on the pitch.
+      </p>
+      <div class="hero-cta">
+        <a href="#features" class="btn btn-primary">Explore Features</a>
+        <a href="#stack" class="btn btn-outline">Tech Stack</a>
+      </div>
+
+      <!-- Live match demo card -->
+      <div class="hero-demo">
+        <div class="demo-topbar">
+          <div class="demo-topbar-left">
+            <span class="live-badge">
+              <div class="live-dot" style="width:6px;height:6px"></div>
+              LIVE
+            </span>
+            <span>Region Cup · Group A</span>
+          </div>
+          <span style="font-size:0.78rem;color:var(--muted)">67 viewers</span>
+        </div>
+        <div class="demo-score">
+          <div class="demo-teams">
+            <span>FC Mladá Boleslav B</span>
+            <span class="demo-scoreline">2 : 1</span>
+            <span>TJ Sokol Čelákovice</span>
+          </div>
+          <div class="demo-min">72′ · Second half</div>
+        </div>
+        <div class="demo-events">
+          <div class="demo-event">
+            <span class="event-min">72′</span>
+            <span class="event-icon">🟨</span>
+            <span class="event-text">Yellow card — <small>Novák (Čelákovice)</small></span>
+          </div>
+          <div class="demo-event">
+            <span class="event-min">65′</span>
+            <span class="event-icon">⚽</span>
+            <span class="event-text">Goal! Procházka <small>→ 2:1</small></span>
+          </div>
+          <div class="demo-event">
+            <span class="event-min">58′</span>
+            <span class="event-icon">🔄</span>
+            <span class="event-text">Substitution — <small>Horáček off, Dvořák on (Mladá Boleslav B)</small></span>
+          </div>
+          <div class="demo-event">
+            <span class="event-min">45′</span>
+            <span class="event-icon">🔔</span>
+            <span class="event-text">Half time · 1:1</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="section" id="about">
+    <div class="container">
+      <div class="section-label">What is FLive</div>
+      <h2 class="section-title">Real-time football,<br /><span class="grad-text">for every club</span></h2>
+      <p class="section-desc">
+        Amateur clubs play hundreds of matches a season with no coverage, no scoreboard, no way for supporters
+        at home to follow along. FLive fixes that.
+      </p>
+
+      <div class="about-grid">
+        <div class="about-text">
+          <p>
+            A reporter — a parent, a coach, anyone on the sideline — signs in and creates a match.
+            During the game they log events from their phone: goals, cards, substitutions, corners, VAR reviews —
+            whatever they track. Every event appears instantly on a public viewer feed.
+          </p>
+          <p>
+            Supporters anywhere in the world open a link — no app, no account — and watch the match
+            unfold in real time. The feed refreshes automatically. When the match is over, a full summary
+            is generated and stored permanently.
+          </p>
+          <p>
+            No camera, no stream, no bandwidth — just a text-based live ticker that works on any
+            connection, including a patchy 3G signal on a remote pitch.
+          </p>
+        </div>
+        <div class="role-cards">
+          <div class="role-card">
+            <div class="role-card-header">
+              <div class="role-icon reporter">📋</div>
+              <h3 class="grad-text">Reporter</h3>
+            </div>
+            <p>Signs in · Creates and manages matches · Logs events live from the pitch · Controls the broadcast dashboard · Configures which event types to track per match</p>
+          </div>
+          <div class="role-card">
+            <div class="role-card-header">
+              <div class="role-icon viewer">👁️</div>
+              <h3 class="grad-text-amber">Viewer</h3>
+            </div>
+            <p>Anonymous · No account needed · Opens a share link · Watches the event feed update in real time · Views match summary after full time</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-label">Features</div>
+      <h2 class="section-title">Everything a live<br /><span class="grad-text">ticker needs</span></h2>
+      <p class="section-desc">
+        From kick-off to full time — and penalties if it comes to that.
+      </p>
+
+      <div class="features-grid">
+
+        <div class="feature-card">
+          <div class="feature-icon" style="background:oklch(0.72 0.27 285 / 0.15)">⚡</div>
+          <h3>Real-time Event Feed</h3>
+          <p>A single Firestore <code>onSnapshot</code> listener drives the viewer feed. Events appear within milliseconds of being logged. Finished matches automatically switch to a one-time fetch.</p>
+          <span class="tag">Firestore</span>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon" style="background:oklch(0.82 0.18 72 / 0.15)">📵</div>
+          <h3>Offline Resilience</h3>
+          <p>Reporters can keep logging events even when the pitch has no signal. Pending events queue in <code>localStorage</code> under <code>flive_session</code> and flush automatically on reconnect — no Firebase offline SDK required.</p>
+          <span class="tag amber">Offline-first</span>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon" style="background:oklch(0.60 0.25 200 / 0.15)">🎛️</div>
+          <h3>Reporter Dashboard</h3>
+          <p>Full match lifecycle management: schedule, edit, duplicate, cancel, and broadcast. Matches are grouped by Live / Upcoming / Finished with live pulse indicators and one-tap access to the control panel.</p>
+          <span class="tag">Reporter only</span>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon" style="background:oklch(0.72 0.27 315 / 0.15)">🗂️</div>
+          <h3>Configurable Event Types</h3>
+          <p>Each match has an <code>enabledEventTypes[]</code> array. Reporters choose from 22 gameplay events — goals, cards, substitutions, VAR, corners, shootout kicks — plus 8 fixed structural timeline events.</p>
+          <span class="tag">Per-match config</span>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon" style="background:oklch(0.78 0.18 72 / 0.15)">🥅</div>
+          <h3>Extra Time &amp; Penalties</h3>
+          <p>Full match lifecycle: first half → second half → extra time → penalty shootout. Shootout tracked per kick with <code>scored / missed / saved</code> result. Scores maintained via Firestore <code>increment()</code>.</p>
+          <span class="tag amber">Full lifecycle</span>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon" style="background:oklch(0.72 0.27 285 / 0.15)">🌍</div>
+          <h3>Bilingual — CS / EN</h3>
+          <p>Full i18n with <code>next-intl</code>. URL-based locale routing (<code>/cs/…</code>, <code>/en/…</code>). All UI strings in <code>messages/cs.json</code> and <code>messages/en.json</code>. Czech is the primary locale.</p>
+          <span class="tag">next-intl</span>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon" style="background:oklch(0.60 0.22 145 / 0.15)">🔒</div>
+          <h3>Secure by Default</h3>
+          <p>Firestore rules enforce <code>isOwner()</code> on every match write — update and delete require the authenticated caller to be the match's <code>reporterId</code>. Public reads are open; all writes are gated server-side.</p>
+          <span class="tag">Firestore Rules</span>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon" style="background:oklch(0.78 0.28 315 / 0.15)">📊</div>
+          <h3>Post-match Summary</h3>
+          <p>When a match finishes, <code>writeMatchSummary()</code> writes a compact <code>summary</code> object (scorers, cards, half-time score, shootout) directly onto the match document for instant load on the result page.</p>
+          <span class="tag">Auto-generated</span>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon" style="background:oklch(0.82 0.18 72 / 0.15)">📋</div>
+          <h3>Multi-part Match Support</h3>
+          <p>Configurable <code>parts</code> and <code>partDuration</code> per match — supports quarters, thirds, or any number of periods beyond the standard two halves. The control panel adapts automatically.</p>
+          <span class="tag amber">Flexible</span>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon" style="background:oklch(0.72 0.27 285 / 0.15)">📎</div>
+          <h3>Share Links &amp; QR Codes</h3>
+          <p>Every match has a shareable viewer URL. Reporters can copy the link or display a QR code — generated with <code>qrcode.react</code> — directly from the dashboard so supporters can scan and follow along.</p>
+          <span class="tag">One tap</span>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon" style="background:oklch(0.60 0.25 200 / 0.15)">🌙</div>
+          <h3>Dark / Light Theme</h3>
+          <p>Full dark and light mode via <code>next-themes</code>. The design system is built on CSS custom properties in <code>oklch</code> color space — consistent contrast ratios across both themes without any opacity hacks.</p>
+          <span class="tag">oklch tokens</span>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon" style="background:oklch(0.72 0.27 315 / 0.15)">⚙️</div>
+          <h3>Team &amp; Player Management</h3>
+          <p>Reporters manage their teams, squads, pitches and competitions in the Settings area. These are stored per-user in Firestore sub-collections and pre-populate the match creation form.</p>
+          <span class="tag">Reporter settings</span>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- TECH STACK -->
+  <section class="section" id="stack">
+    <div class="container">
+      <div class="section-label">Tech Stack</div>
+      <h2 class="section-title">Modern, lean,<br /><span class="grad-text">production-ready</span></h2>
+      <p class="section-desc">
+        Chosen for developer velocity, real-time capability, and zero infrastructure to manage.
+      </p>
+
+      <div class="stack-grid">
+        <div class="stack-card">
+          <div class="stack-logo" style="background:#000;color:#fff;font-weight:900;font-size:0.9rem">N</div>
+          <div>
+            <h4>Next.js 14</h4>
+            <p>App Router · RSC</p>
+          </div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-logo" style="background:oklch(0.60 0.22 200 / 0.2);font-size:1.3rem">⚛️</div>
+          <div>
+            <h4>React 18</h4>
+            <p>Client components</p>
+          </div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-logo" style="background:oklch(0.55 0.20 230 / 0.2);font-size:1.3rem">🟦</div>
+          <div>
+            <h4>TypeScript 5</h4>
+            <p>Strict mode</p>
+          </div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-logo" style="background:oklch(0.60 0.22 30 / 0.2);font-size:1.3rem">🔥</div>
+          <div>
+            <h4>Firebase 10</h4>
+            <p>Firestore · Auth</p>
+          </div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-logo" style="background:oklch(0.55 0.20 185 / 0.2);font-size:1.1rem">🌊</div>
+          <div>
+            <h4>Tailwind CSS 3</h4>
+            <p>oklch design tokens</p>
+          </div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-logo" style="background:oklch(0.72 0.27 285 / 0.15);font-size:1rem;font-weight:700;color:var(--violet)">i18n</div>
+          <div>
+            <h4>next-intl 3</h4>
+            <p>CS / EN · URL routing</p>
+          </div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-logo" style="background:oklch(0.60 0.20 310 / 0.2);font-size:1.3rem">🧩</div>
+          <div>
+            <h4>Base UI + Radix</h4>
+            <p>Headless primitives</p>
+          </div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-logo" style="background:oklch(0.55 0.18 25 / 0.2);font-size:1.3rem">📋</div>
+          <div>
+            <h4>React Hook Form</h4>
+            <p>+ Zod validation</p>
+          </div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-logo" style="background:oklch(0.60 0.20 145 / 0.2);font-size:1.3rem">🎨</div>
+          <div>
+            <h4>Lucide Icons</h4>
+            <p>Consistent icon set</p>
+          </div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-logo" style="background:oklch(0.72 0.27 285 / 0.15);font-size:0.75rem;font-weight:700;color:var(--violet)">QR</div>
+          <div>
+            <h4>qrcode.react</h4>
+            <p>Share link QR codes</p>
+          </div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-logo" style="background:oklch(0.78 0.18 72 / 0.15);font-size:1.3rem">🍞</div>
+          <div>
+            <h4>react-hot-toast</h4>
+            <p>Feedback toasts</p>
+          </div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-logo" style="background:oklch(0.55 0.18 180 / 0.2);font-size:1.3rem">🌙</div>
+          <div>
+            <h4>next-themes</h4>
+            <p>Dark / light mode</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <section class="section" id="architecture">
+    <div class="container">
+      <div class="section-label">Architecture</div>
+      <h2 class="section-title">Key decisions<br /><span class="grad-text">that matter</span></h2>
+      <p class="section-desc">
+        Non-obvious choices made deliberately — and the reasons behind them.
+      </p>
+
+      <div class="arch-grid">
+        <div class="arch-card">
+          <h3><span>⚡</span> Single real-time listener</h3>
+          <ul>
+            <li><code>EventFeed.tsx</code> is the only component using <code>onSnapshot</code></li>
+            <li>All other data loading is one-time <code>getDoc</code> on mount</li>
+            <li>Finished matches automatically downgrade to a static fetch</li>
+            <li>Prevents runaway listener proliferation as the app grows</li>
+          </ul>
+        </div>
+        <div class="arch-card">
+          <h3><span>📵</span> Offline queue strategy</h3>
+          <ul>
+            <li><code>flive_session</code> key in <code>localStorage</code> queues <code>PendingEvent[]</code></li>
+            <li>Helpers: <code>getBroadcastSession</code>, <code>setBroadcastSession</code>, <code>clearBroadcastSession</code></li>
+            <li>Events flush to Firestore automatically on reconnect</li>
+            <li>Firebase offline persistence intentionally not used — session queue is the strategy</li>
+          </ul>
+        </div>
+        <div class="arch-card">
+          <h3><span>🔐</span> Auth: React Context, not Zustand</h3>
+          <ul>
+            <li><code>AuthProvider</code> wraps <code>onAuthStateChanged</code> → Firestore user lookup</li>
+            <li>Exposed via <code>useAuth()</code> → <code>{ user, loading, logout }</code></li>
+            <li>No Zustand anywhere in the project</li>
+            <li><code>AppShell</code> guards protected routes; <code>auth/layout.tsx</code> guards auth pages</li>
+          </ul>
+        </div>
+        <div class="arch-card">
+          <h3><span>🛡️</span> Security at the rules layer</h3>
+          <ul>
+            <li>Firestore <code>allow update, delete: if isOwner(resource.data)</code></li>
+            <li><code>isOwner()</code> checks <code>request.auth.uid == matchData.reporterId</code></li>
+            <li>Event sub-collection writes do a <code>get()</code> back to the parent match doc</li>
+            <li>Client-side guards are UX only — server rules are the real barrier</li>
+          </ul>
+        </div>
+        <div class="arch-card">
+          <h3><span>🎨</span> oklch color system</h3>
+          <ul>
+            <li>All tokens use full <code>oklch(…)</code> values — no bare HSL channels</li>
+            <li>Tailwind opacity modifiers (<code>bg-primary/50</code>) do not work — use <code>color-mix()</code> instead</li>
+            <li>Perceptually uniform — violet and amber stay vivid at the same lightness</li>
+            <li>Dark mode simply redefines the same custom properties</li>
+          </ul>
+        </div>
+        <div class="arch-card">
+          <h3><span>📂</span> Firestore data shape</h3>
+          <ul>
+            <li><code>users/{uid}</code> — reporter profile keyed by Firebase Auth UID</li>
+            <li><code>matches/{matchId}</code> — match doc with summary written on finish</li>
+            <li><code>matches/{matchId}/events/{eventId}</code> — event sub-collection, never deleted</li>
+            <li>All reads/writes via <code>firebaseServices.ts</code> — no Firestore imports in components</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Firestore tree -->
+      <div class="firestore-tree">
+        <div class="tree-line"><span class="tree-coll">Firestore</span></div>
+        <div class="tree-indent">
+          <div class="tree-line"><span class="tree-coll">users/</span><span class="tree-val">{uid}</span></div>
+          <div class="tree-indent">
+            <div class="tree-line"><span class="tree-key">uid</span><span class="tree-val"> · email · displayName · role: "reporter"</span></div>
+            <div class="tree-line"><span class="tree-coll">teams/</span><span class="tree-val">{teamId}  →  players/  ·  pitches/</span></div>
+          </div>
+          <div class="tree-line" style="margin-top:8px"><span class="tree-coll">matches/</span><span class="tree-val">{matchId}</span></div>
+          <div class="tree-indent">
+            <div class="tree-line"><span class="tree-key">reporterId</span><span class="tree-val"> · homeTeam · awayTeam · status · scheduledAt</span></div>
+            <div class="tree-line"><span class="tree-key">homeScore</span><span class="tree-val"> · awayScore · enabledEventTypes[]</span></div>
+            <div class="tree-line"><span class="tree-key">summary</span><span class="tree-val"> — written by writeMatchSummary() on finish</span></div>
+            <div class="tree-line"><span class="tree-coll">events/</span><span class="tree-val">{eventId}  →  type · minute · team · playerName · …</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container footer-inner">
+      <div>
+        <div class="footer-brand">F<span class="grad-text">Live</span></div>
+        <div class="footer-meta" style="margin-top:4px">Live football broadcaster for amateur &amp; youth clubs</div>
+      </div>
+      <div class="footer-pills">
+        <span class="pill">Next.js 14</span>
+        <span class="pill">Firebase</span>
+        <span class="pill">TypeScript</span>
+        <span class="pill">Tailwind</span>
+        <span class="pill">CS / EN</span>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

@@ -348,6 +348,71 @@ Used for: Detailed views with multiple sub-sections
 
 ## 9. Match-Specific Components
 
+### MatchCard Row (`src/components/match/MatchCard.tsx`)
+
+The primary match list item — used on the home page and in the dashboard. **Not** a `Card` component; it is a plain `div` row rendered inside a bordered list container:
+
+```tsx
+<div className="rounded-xl border border-border overflow-hidden divide-y divide-border">
+  {matches.map((m, i) => <MatchCard key={m.id} match={m} variant="…" index={i} />)}
+</div>
+```
+
+Row alternates background by index: even → `bg-card`, odd → `bg-muted`. Live matches add a left accent: `border-l-2 border-primary`.
+
+#### Props
+
+| Prop | Type | Notes |
+|---|---|---|
+| `match` | `Match` | The match document |
+| `variant` | `"public" \| "reporter"` | Controls which actions are shown |
+| `index` | `number` | For alternating row backgrounds |
+| `onRefresh` | `() => void` | Called after cancel to refresh the list |
+
+#### `public` variant — home page
+
+```
+[MatchStatusBadge] [home · score · away] [competition · time] [copy] [cancel?] [›]
+```
+
+- Copy link button: always visible (`Copy` icon, `text-muted-foreground hover:text-foreground`)
+- **Cancel button** (`Ban` icon): only shown when `user.uid === match.reporterId && match.status === "scheduled"` — owner-only, invisible to anonymous viewers or other reporters
+- Chevron `›`: always rightmost, non-interactive
+
+#### `reporter` variant — dashboard
+
+```
+[MatchStatusBadge] [home · score · away] [competition · time] [copy] [duplicate] [cancel?] [edit] [▶]
+```
+
+- All actions always visible (same icon button style)
+- Cancel (`Ban` icon): only shown when `match.status === "scheduled"`
+- Edit (`Settings` icon): links to `dashboard/match/[id]/edit`
+- Play (`Play` icon): links to `dashboard/match/[id]`; uses `gradient-brand text-white` when live, `text-muted-foreground` otherwise
+
+#### Action icon button style (both variants)
+
+```tsx
+<button className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground transition-colors">
+  <Icon className="h-3.5 w-3.5" />
+</button>
+```
+
+Cancel specifically: `hover:text-destructive` instead of `hover:text-foreground`.
+
+#### Cancel confirmation dialog
+
+Triggered by the `Ban` icon in either variant. Uses the standard Dialog pattern (Section 6) with:
+
+- Title: `dashboard.cancelConfirmTitle`
+- Description: `dashboard.cancelConfirmDesc`
+- Footer: `Back` (`variant="outline"`) + `Cancel match` (`bg-destructive text-destructive-foreground`)
+- After confirm: `cancelMatch(match.id)` → `onRefresh?.()` → dialog closes
+
+In the `public` variant the dialog is conditionally rendered only when `isOwner` is true.
+
+---
+
 ### ScoreBoard
 
 ```tsx
@@ -565,3 +630,4 @@ Centered card on a gradient-hero background:
 | `src/types/index.ts` | Event type definitions |
 | `src/lib/firebaseServices.ts` | All Firestore reads/writes |
 | `src/lib/utils.ts` | Broadcast session helpers |
+| `PRESENTATION.html` | Standalone app presentation page (features, tech stack, architecture) |

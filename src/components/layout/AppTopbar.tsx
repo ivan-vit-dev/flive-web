@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { LogOut, Radio } from "lucide-react";
+import { LogOut, Radio, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./ThemeToggle";
 import { LocaleSwitcher } from "./LocaleSwitcher";
@@ -44,6 +44,13 @@ export function AppTopbar() {
         <LocaleSwitcher />
         <ThemeToggle />
         <div className="mx-1 h-4 w-px bg-border" />
+        <Link
+          href={`/${locale}/dashboard/settings`}
+          className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+        >
+          <Settings2 className="h-4 w-4" />
+          <span className="hidden sm:inline">{t("settings.title")}</span>
+        </Link>
         <Button
           variant="ghost"
           size="sm"

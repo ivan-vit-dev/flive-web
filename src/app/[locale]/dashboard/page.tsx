@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MatchCard } from "@/components/match/MatchCard";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { getReporterMatches } from "@/lib/firebaseServices";
 import { getBroadcastSession } from "@/lib/utils";
@@ -21,6 +22,11 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const fetchMatches = () => {
+    if (!user) return;
+    getReporterMatches(user.uid).then(setMatches);
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -75,8 +81,10 @@ export default function DashboardPage() {
         </TabsList>
 
         {loading ? (
-          <div className="flex h-40 items-center justify-center">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <div className="mt-4 rounded-xl border border-border overflow-hidden divide-y divide-border">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-12 w-full rounded-none" />
+            ))}
           </div>
         ) : (
           <>
@@ -95,7 +103,7 @@ export default function DashboardPage() {
                 <EmptyState message={t("dashboard.noUpcoming")} />
               ) : (
                 <div className="rounded-xl border border-border overflow-hidden divide-y divide-border">
-                  {upcoming.map((m, i) => <MatchCard key={m.id} match={m} variant="reporter" index={i} />)}
+                  {upcoming.map((m, i) => <MatchCard key={m.id} match={m} variant="reporter" index={i} onRefresh={fetchMatches} />)}
                 </div>
               )}
             </TabsContent>

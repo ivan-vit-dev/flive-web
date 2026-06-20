@@ -17,7 +17,8 @@
     "shareMatch": "Sdílet zápas",
     "noData": "Žádná data",
     "error": "Chyba",
-    "dismiss": "Zavřít"
+    "dismiss": "Zavřít",
+    "undo": "Zpět"
   },
   "auth": {
     "login": "Přihlásit se",
@@ -98,7 +99,13 @@
     "noFinished": "Žádné ukončené zápasy",
     "createFirst": "Vytvořte svůj první zápas",
     "openControl": "Otevřít přenos",
-    "editMatch": "Upravit"
+    "editMatch": "Upravit",
+    "duplicateMatch": "Duplikovat",
+    "duplicateSuccess": "Zápas duplikován",
+    "cancelMatch": "Zrušit zápas",
+    "cancelConfirmTitle": "Zrušit tento zápas?",
+    "cancelConfirmDesc": "Zápas bude označen jako zrušený. Poté ho stále můžete upravit nebo duplikovat.",
+    "cancelSuccess": "Zápas zrušen"
   },
   "matchForm": {
     "createTitle": "Nový zápas",
@@ -154,6 +161,15 @@
     "syncSuccess": "Synchronizováno",
     "eventsLog": "Záznam zápasu",
     "broadcastLink": "Přenos",
+    "confirmFinishTitle": "Ukončit zápas?",
+    "confirmFinishDesc": "Tím se zápas ukončí a zapíše výsledný souhrn. Tuto akci nelze vrátit.",
+    "confirmDeleteEventTitle": "Odebrat událost?",
+    "confirmDeleteEventDesc": "Odebrat tuto událost ze záznamu zápasu?",
+    "undoEventAdded": "Událost zaznamenána",
+    "viewerCount": "{count} sleduje",
+    "exportReport": "Kopírovat zprávu",
+    "reportCopied": "Zpráva zkopírována!",
+    "keyboardHint": "{key}",
     "eventConfig": "Konfigurace událostí",
     "eventGroups": {
       "goals": "Góly",
@@ -227,7 +243,11 @@
     "custom_note": "Vlastní komentář přenosu — cokoliv, co stojí za zvýraznění pro diváky."
   },
   "broadcast": {
-    "shareWith": "Sdílet přenos:"
+    "shareWith": "Sdílet přenos:",
+    "notifyMe": "Upozornit mě",
+    "notifyEnabled": "Oznámení zapnuta",
+    "notifyDenied": "Oznámení blokována — povolte v nastavení prohlížeče",
+    "notifyGoal": "Gól! {minute}' {player} · {team}"
   },
   "eventForm": {
     "team": "Tým",

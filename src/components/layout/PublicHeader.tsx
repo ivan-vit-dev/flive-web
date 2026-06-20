@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { Radio, LogIn, UserPlus, LayoutDashboard, LogOut, Menu, X, User } from "lucide-react";
+import { Radio, LogIn, UserPlus, LayoutDashboard, LogOut, Menu, X, User, Settings2 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./ThemeToggle";
@@ -70,6 +70,14 @@ export function PublicHeader() {
                       <LayoutDashboard className="h-4 w-4" />
                       {t("dashboard.title")}
                     </Link>
+                    <Link
+                      href={`/${locale}/dashboard/settings`}
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                    >
+                      <Settings2 className="h-4 w-4" />
+                      {t("settings.title")}
+                    </Link>
                     <button
                       onClick={handleLogout}
                       className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-destructive hover:bg-accent transition-colors"
@@ -133,6 +141,14 @@ export function PublicHeader() {
                 >
                   <LayoutDashboard className="h-4 w-4" />
                   {t("dashboard.title")}
+                </Link>
+                <Link
+                  href={`/${locale}/dashboard/settings`}
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
+                >
+                  <Settings2 className="h-4 w-4" />
+                  {t("settings.title")}
                 </Link>
                 <button
                   onClick={handleLogout}

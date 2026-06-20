@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { X } from "lucide-react";
+import { X, Check } from "lucide-react";
 import { EventBadge } from "./EventBadge";
 import { formatMinute } from "@/lib/utils";
 import { cn } from "@/lib/utils";
@@ -27,16 +28,40 @@ function MinutePill({ minute, addedTime }: { minute: number; addedTime: number |
 export function EventFeedItem({ event, homeTeam, awayTeam, index = 0, onRemove }: Props) {
   const t = useTranslations("events");
   const tForm = useTranslations("eventForm");
+  const [confirming, setConfirming] = useState(false);
+  const confirmTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTimeline = TIMELINE_EVENTS.includes(event.type);
   const rowBg = index % 2 === 0 ? "bg-muted" : "";
 
+  useEffect(() => {
+    return () => { if (confirmTimer.current) clearTimeout(confirmTimer.current); };
+  }, []);
+
+  const handleRemoveClick = () => {
+    if (!onRemove) return;
+    if (confirming) {
+      if (confirmTimer.current) clearTimeout(confirmTimer.current);
+      setConfirming(false);
+      onRemove(event);
+    } else {
+      setConfirming(true);
+      confirmTimer.current = setTimeout(() => setConfirming(false), 3000);
+    }
+  };
+
   const removeBtn = onRemove ? (
     <button
-      onClick={() => onRemove(event)}
-      className="shrink-0 rounded-md p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive-subtle transition-colors"
-      aria-label="Remove event"
+      onClick={handleRemoveClick}
+      className={cn(
+        "shrink-0 rounded-md p-1.5 transition-colors",
+        confirming
+          ? "text-destructive bg-destructive-subtle hover:bg-destructive/20"
+          : "text-muted-foreground hover:text-destructive hover:bg-destructive-subtle"
+      )}
+      aria-label={confirming ? "Confirm remove" : "Remove event"}
+      title={confirming ? "Click again to confirm" : "Remove event"}
     >
-      <X className="h-4 w-4" />
+      {confirming ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
     </button>
   ) : null;
 

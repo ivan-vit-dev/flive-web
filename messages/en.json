@@ -17,7 +17,8 @@
     "shareMatch": "Share match",
     "noData": "No data",
     "error": "Error",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "undo": "Undo"
   },
   "auth": {
     "login": "Log in",
@@ -98,7 +99,13 @@
     "noFinished": "No finished matches",
     "createFirst": "Create your first match",
     "openControl": "Open broadcast",
-    "editMatch": "Edit"
+    "editMatch": "Edit",
+    "duplicateMatch": "Duplicate",
+    "duplicateSuccess": "Match duplicated",
+    "cancelMatch": "Cancel match",
+    "cancelConfirmTitle": "Cancel this match?",
+    "cancelConfirmDesc": "The match will be marked as cancelled. You can still edit or duplicate it afterwards.",
+    "cancelSuccess": "Match cancelled"
   },
   "matchForm": {
     "createTitle": "New match",
@@ -154,6 +161,15 @@
     "syncSuccess": "Synced",
     "eventsLog": "Match log",
     "broadcastLink": "Broadcast",
+    "confirmFinishTitle": "Finish match?",
+    "confirmFinishDesc": "This will end the match and write the final summary. This cannot be undone.",
+    "confirmDeleteEventTitle": "Remove event?",
+    "confirmDeleteEventDesc": "Remove this event from the match log?",
+    "undoEventAdded": "Event logged",
+    "viewerCount": "{count} watching",
+    "exportReport": "Copy match report",
+    "reportCopied": "Report copied to clipboard!",
+    "keyboardHint": "{key}",
     "eventConfig": "Event settings",
     "eventGroups": {
       "goals": "Goals",
@@ -227,7 +243,11 @@
     "custom_note": "A custom broadcaster note — anything worth highlighting for viewers."
   },
   "broadcast": {
-    "shareWith": "Share broadcast with:"
+    "shareWith": "Share broadcast with:",
+    "notifyMe": "Notify me",
+    "notifyEnabled": "Notifications on",
+    "notifyDenied": "Notifications blocked — enable in browser settings",
+    "notifyGoal": "Goal! {minute}' {player} · {team}"
   },
   "eventForm": {
     "team": "Team",

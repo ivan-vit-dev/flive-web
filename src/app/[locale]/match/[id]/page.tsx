@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { PublicHeader } from "@/components/layout/PublicHeader";
 import { ScoreBoard } from "@/components/match/ScoreBoard";
 import { EventFeed } from "@/components/match/EventFeed";
-import { getMatch } from "@/lib/firebaseServices";
+import { getMatch, incrementViewerCount, decrementViewerCount } from "@/lib/firebaseServices";
 import type { Match } from "@/types";
 import toast from "react-hot-toast";
 
@@ -26,6 +26,11 @@ export default function MatchViewerPage() {
     getMatch(id)
       .then(setMatch)
       .finally(() => setLoading(false));
+  }, [id]);
+
+  useEffect(() => {
+    incrementViewerCount(id).catch(() => {});
+    return () => { decrementViewerCount(id).catch(() => {}); };
   }, [id]);
 
   const copyLink = async () => {

@@ -73,6 +73,7 @@ export interface Match {
   currentPart?: number;  // 0 = not started, N = current/last completed part
   description: string | null;
   isPublic: true;
+  viewerCount?: number;
 
   summary: MatchSummary | null;
 

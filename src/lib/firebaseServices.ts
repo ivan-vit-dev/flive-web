@@ -136,6 +136,13 @@ export async function deleteMatch(matchId: string): Promise<void> {
   await deleteDoc(doc(db, "matches", matchId));
 }
 
+export async function cancelMatch(matchId: string): Promise<void> {
+  await updateDoc(doc(db, "matches", matchId), {
+    status: "cancelled" as MatchStatus,
+    updatedAt: serverTimestamp(),
+  });
+}
+
 export async function updateMatchStatus(matchId: string, status: MatchStatus, extra?: { currentMinute?: number; halfNumber?: 1 | 2 | null; currentPart?: number }): Promise<void> {
   await updateDoc(doc(db, "matches", matchId), {
     status,
@@ -230,6 +237,43 @@ export async function deleteMatchEvent(matchId: string, event: MatchEvent): Prom
   if (Object.keys(matchPatch).length > 1) {
     await updateDoc(doc(db, "matches", matchId), matchPatch);
   }
+}
+
+// ─── Duplicate match ──────────────────────────────────────────────────────────
+
+export async function duplicateMatch(match: Match, reporterId: string): Promise<string> {
+  const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  // Preserve the original time-of-day but shift to next week
+  const original = match.scheduledAt?.toDate?.();
+  if (original) {
+    nextWeek.setHours(original.getHours(), original.getMinutes(), 0, 0);
+  }
+  return createMatch({
+    reporterId,
+    reporterName: match.reporterName,
+    homeTeam: match.homeTeam,
+    awayTeam: match.awayTeam,
+    homePlayers: [],
+    awayPlayers: [],
+    enabledEventTypes: match.enabledEventTypes,
+    venue: match.venue,
+    competition: match.competition,
+    scheduledAt: Timestamp.fromDate(nextWeek),
+    parts: match.parts ?? 2,
+    partDuration: match.partDuration ?? 45,
+    description: null,
+    isPublic: true,
+  });
+}
+
+// ─── Viewer count ──────────────────────────────────────────────────────────────
+
+export async function incrementViewerCount(matchId: string): Promise<void> {
+  await updateDoc(doc(db, "matches", matchId), { viewerCount: increment(1) });
+}
+
+export async function decrementViewerCount(matchId: string): Promise<void> {
+  await updateDoc(doc(db, "matches", matchId), { viewerCount: increment(-1) });
 }
 
 // ─── Post-match summary ───────────────────────────────────────────────────────
