@@ -1,27 +1,50 @@
-# Stack & Architecture Conventions
+# FLive — Stack & Architecture Reference
 
-Copy this file to a new project and update the project-specific sections (locale list, Firestore collections, env vars).
-Everything else is a reusable convention — keep it consistent across projects.
+This document describes the **actual** technology choices and conventions used in this project. For AI guidance (quirks, constraints, decisions), see `CLAUDE.md`.
 
 ---
 
 ## Tech Stack
 
-| Layer | Choice | Notes |
-|---|---|---|
-| Framework | Next.js 14 App Router | SSR + file-based routing |
-| Language | TypeScript 5 | strict mode |
-| UI components | shadcn/ui | Radix UI primitives + Tailwind |
-| Styling | Tailwind CSS | CSS variables for all colors |
-| Theme | next-themes | `attribute="class"`, dark/light |
-| Icons | lucide-react | no other icon libs |
-| State | Zustand | two stores: authStore + appStore |
-| Forms | react-hook-form + zod | always pair together |
-| Toasts | react-hot-toast | one `<Toaster>` in root layout |
-| Charts | recharts | |
-| i18n | next-intl | locale in URL path |
-| Backend | Firebase (Auth + Firestore + FCM) | |
-| PWA | manifest.json + sw.js + FCM | |
+| Layer | Choice |
+|-------|--------|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript 5 |
+| UI primitives | shadcn/ui + @base-ui/react |
+| Styling | Tailwind CSS v3 with oklch CSS custom properties |
+| Icons | lucide-react |
+| Auth (client) | Firebase Auth v10 via React Context (`AuthProvider`) |
+| Auth (server) | next-firebase-auth-edge — HTTP-only session cookie, validated in middleware |
+| Database | Firebase Firestore v10 |
+| i18n | next-intl — locales: `cs` (primary), `en` |
+| Forms | react-hook-form + zod |
+| Notifications | react-hot-toast |
+| PWA | manifest.json + service worker |
+
+---
+
+## Authentication
+
+Two-layer auth — never use one without the other:
+
+### Client layer — Firebase Auth + React Context
+- `AuthProvider` (`src/components/providers/AuthProvider.tsx`) listens to `onAuthStateChanged`
+- On auth change → fetches `users/{uid}` from Firestore → stores in `useState`
+- Exposes `useAuth()` → `{ user, loading, setUser, logout }`
+- `logout()` calls `/api/auth/logout` to clear the cookie, then Firebase `signOut()`
+
+### Server layer — session cookie
+- After sign-in, the page POSTs to `/api/auth/login` with `Authorization: Bearer <idToken>`
+- `src/middleware.ts` (via `next-firebase-auth-edge`) intercepts this, creates a signed HTTP-only `session` cookie
+- On every subsequent request, middleware validates the cookie
+- `/dashboard/*` and `/broadcast/*` redirect to `/{locale}/auth/login` if cookie is missing/invalid
+- Authenticated users are redirected away from `/auth/*` paths server-side
+
+### Required env vars
+```
+AUTH_COOKIE_SIGNATURE_KEY_CURRENT   # random 32-char secret
+AUTH_COOKIE_SIGNATURE_KEY_PREVIOUS  # previous key (for rotation)
+```
 
 ---
 
@@ -30,154 +53,93 @@ Everything else is a reusable convention — keep it consistent across projects.
 ```
 src/
 ├── app/
-│   └── [locale]/
-│       ├── layout.tsx          # Mounts AuthProvider, ThemeProvider, Toaster
-│       ├── auth/
-│       │   ├── layout.tsx      # Guard: redirects authenticated users to dashboard
-│       │   └── (login|register|reset)/
-│       └── (protected)/
-│           ├── layout.tsx      # Just renders <AppShell> — no server-side auth check
-│           └── (pages)/
+│   └── [locale]/           # All routes locale-prefixed
+│       ├── layout.tsx       # Root layout — AuthProvider, NextIntlClientProvider, ThemeProvider
+│       ├── page.tsx         # Public match list (client component)
+│       ├── auth/            # Login, register — thin server layout
+│       ├── match/[id]/      # Public viewer (anonymous)
+│       ├── broadcast/[id]/  # Reporter broadcast page
+│       └── dashboard/       # Protected reporter area
 ├── components/
-│   ├── ui/                 # shadcn/ui components only — do not add custom components here
-│   ├── providers/
-│   │   └── AuthProvider.tsx
-│   └── (feature folders)/
+│   ├── ui/                  # shadcn/ui + Base UI wrappers (Button, Input must use forwardRef)
+│   ├── providers/           # AuthProvider
+│   ├── layout/              # PublicHeader, AppShell, AppSidebar, AppTopbar, AppBottomNav
+│   ├── forms/               # LoginForm, RegisterForm, MatchForm, EventForm
+│   └── match/               # MatchCard, EventFeed (only onSnapshot here), LiveControlPanel
 ├── lib/
-│   ├── firebase.ts         # Firebase init, exports auth, db, messaging
-│   ├── firebaseServices.ts # All Firestore CRUD — no Firestore calls outside this file
-│   └── utils.ts            # cn(), getFirebaseErrorMessage(), shared helpers
-├── store/
-│   ├── authStore.ts
-│   └── appStore.ts
+│   ├── firebase.ts          # Firebase init — exports auth, db
+│   ├── firebaseServices.ts  # ALL Firestore CRUD (no Firestore calls outside this file)
+│   └── utils.ts             # cn(), getFirebaseErrorMessage(), broadcast session helpers
 ├── types/
-│   └── index.ts            # All domain types in one file
-├── hooks/                  # Custom React hooks
-└── proxy.ts                # next-intl locale middleware (file is proxy.ts, not middleware.ts)
-messages/
-├── cs.json                 # Primary locale
-└── en.json
-public/
-├── manifest.json
-└── sw.js
-```
-
----
-
-## Routing
-
-- All routes live under `src/app/[locale]/`.
-- The middleware file is `src/proxy.ts` — it only handles locale detection via `next-intl`. No auth logic in middleware.
-- Locale matcher: `/` and `/(cs|en)/:path*` (update locale list per project).
-- Use `useRouter()` and `useParams()` from `next/navigation` for navigation.
-
----
-
-## Auth Pattern
-
-Auth is fully **client-side**. No Firebase Admin SDK, no session cookies, no server-side route protection.
-
-**`AuthProvider`** (mounted in locale layout) is the single source of truth for auth state:
-1. Listens to Firebase `onAuthStateChanged`.
-2. Looks up the Firestore `users` doc by email.
-3. Writes result to `useAuthStore` via `setUser`.
-4. Does **not** create user docs — registration hook handles that explicitly.
-
-**Route guards (client-side only):**
-- **Protected routes:** `AppShell` checks `useAuth()`. While loading → spinner. If `!user` after load → `router.push(`/${locale}/auth/login`)`.
-- **Auth pages:** `src/app/[locale]/auth/layout.tsx` checks `useAuth()`. If `user` is set → `router.push(`/${locale}`)`.
-
-**Registration race condition** — `onAuthStateChanged` fires as soon as Firebase Auth creates the user, before the Firestore doc exists. Fix: after `createUser()` in the sign-up hook, immediately call `setUser(newUser)` before `router.push`. `AuthProvider` will overwrite with the same data once it resolves.
-
-```ts
-// authStore shape
-{ user: User | null; loading: boolean; setUser; setLoading; logout }
+│   └── index.ts             # All domain types in one file
+├── i18n/
+│   └── request.ts           # next-intl server config
+└── proxy.ts                 # next-intl locale routing + next-firebase-auth-edge session guard (Next.js 16: proxy.ts replaces middleware.ts)
 ```
 
 ---
 
 ## State Management
 
-Two Zustand stores only — do not add a third store; extend `appStore` instead.
+No Zustand. The only global state is auth:
+- **Server**: HTTP-only session cookie managed by middleware
+- **Client**: `AuthProvider` React Context — `user`, `loading`, `setUser`, `logout`
 
-- **`useAuthStore`** — auth state only.
-- **`useAppStore`** — all domain entity lists, granular add/update/delete actions, per-entity `loading` flags.
-
-Data flow: Firestore → `firebaseServices.ts` → store setters → components.
-
-**No real-time Firestore listeners.** Load data on demand (on page mount or user action), then write to the store.
+All other state is local component state or derived from Firestore on mount.
 
 ---
 
-## Firebase
+## Data & Real-time
+
+- All Firestore reads/writes are centralized in `src/lib/firebaseServices.ts`
+- No Firestore imports in components or pages
+- **`EventFeed.tsx` is the only component that uses `onSnapshot`** — do not add real-time listeners elsewhere
+- All other data loading is one-time `getDoc`/`getDocs` on mount
+
+---
+
+## Offline Resilience (Reporters)
+
+When a reporter loses connectivity during a broadcast, events are queued in `localStorage` under the key `flive_session` (type `BroadcastSession`). On reconnect, they are flushed to Firestore. The `flive_session` key also caches the running match clock (saved every 30 s with a wall-clock timestamp, restored on reload). Helpers in `src/lib/utils.ts`:
 
 ```ts
-// src/lib/firebase.ts exports
-export { auth, db, messaging }
+getBroadcastSession()
+setBroadcastSession(session)
+clearBroadcastSession()
+saveMatchClock(seconds)
+clearMatchClock()
 ```
 
-- `messaging` is browser-only — guard with `typeof window !== 'undefined'`.
-- Fall back to placeholder config values when env vars are missing so the dev server starts without credentials.
-- All Firestore reads/writes live in `firebaseServices.ts`. No Firestore imports in components or stores.
-
-### Required env vars
-
-```
-NEXT_PUBLIC_FIREBASE_API_KEY
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-NEXT_PUBLIC_FIREBASE_PROJECT_ID
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-NEXT_PUBLIC_FIREBASE_APP_ID
-NEXT_PUBLIC_FIREBASE_VAPID_KEY
-```
-
-### Firestore document conventions
-
-- Every document has `createdAt` and `updatedAt` (Firestore `Timestamp`).
-- Every user-owned document has a `userId` or `coachId` field for scoping queries.
-- All domain types are defined in `src/types/index.ts`.
+Do not use Firebase offline persistence — the session queue is the strategy.
 
 ---
 
-## UI Conventions
+## Styling
 
-### Components
-
-- Use **shadcn/ui** for all UI — Button, Input, Dialog, Card, Select, Tabs, etc.
-- Never import from `@radix-ui/*` directly in feature code — always through the `src/components/ui/` wrappers.
-- No MUI, no Ant Design, no Chakra.
-
-### Theming
-
-- Colors use CSS variables: `hsl(var(--primary))`, `hsl(var(--background))`, etc.
-- Dark/light toggle via `next-themes` with `attribute="class"` on `<html>`.
-- Never hardcode hex/rgb colors in components — always use Tailwind semantic tokens.
-
-### Icons
-
-- **lucide-react** only. One import style: `import { IconName } from 'lucide-react'`.
-
-### Toasts
-
-- `<Toaster>` is mounted once in the locale layout.
-- Call `toast.success()` / `toast.error()` directly — no prop drilling.
-
-### Forms
-
-- Always use `react-hook-form` + `zod`. Define the schema first, derive the type from it.
-- Render field errors inline below the input, not in a toast.
+- Tailwind with `oklch(...)` CSS custom properties — **opacity modifiers do not work** (`bg-primary/50` fails)
+- Use `color-mix(in oklch, var(--token) 50%, transparent)` for transparency
+- Gradient utilities in `globals.css`: `.gradient-brand`, `.gradient-text`, `.gradient-hero`, `.shadow-card-live`, `.glass`
+- Cards: `rounded-xl` outer, `rounded-lg` for inner items
+- Consult `APP_DESIGN.md` before touching any UI — it has exact Tailwind classes for every component
 
 ---
 
-## Error Handling
+## i18n
 
-Firebase Auth errors are mapped to user-friendly messages via `getFirebaseErrorMessage(error.code)` in `src/lib/utils.ts`. It covers Auth SDK errors (`auth/...`), REST API errors, and HTTP status codes. Always use it in catch blocks — never show raw Firebase error codes to users.
+- Middleware: `src/middleware.ts`
+- Config: `src/i18n/request.ts`
+- Locales: `cs` (primary), `en`
+- Messages: `messages/cs.json`, `messages/en.json`
+- All strings via `useTranslations()`; URL always includes locale: `/[locale]/...`
 
 ---
 
-## PWA
+## Commands
 
-- `public/manifest.json` — app metadata and icons.
-- `public/sw.js` — service worker for offline support.
-- `requestNotificationPermission()` in `src/lib/firebase.ts` — requests browser permission and returns the FCM token. Call it after the user is authenticated, not on page load.
+```bash
+npm run dev      # localhost:3000
+npm run build    # production build
+npm run lint     # ESLint (flat config: eslint.config.mjs)
+```
+
+No test suite exists.

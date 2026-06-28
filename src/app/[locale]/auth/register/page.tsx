@@ -58,6 +58,11 @@ export default function RegisterPage() {
     try {
       const cred = await createUserWithEmailAndPassword(auth, values.email, values.password);
       await updateProfile(cred.user, { displayName: values.displayName });
+      const idToken = await cred.user.getIdToken();
+      await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${idToken}` },
+      });
       const newUser = await createUserDoc(cred.user.uid, values.email, values.displayName);
       setUser(newUser);
       router.push(`/${locale}/dashboard`);

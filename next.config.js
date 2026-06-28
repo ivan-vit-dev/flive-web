@@ -18,4 +18,23 @@ const nextConfig = {
   },
 };
 
-module.exports = withNextIntl(nextConfig);
+// next-intl writes its alias into experimental.turbo when Turbopack is active,
+// but Next.js 16 moved that config to the top-level turbopack key.
+// Promote the alias and remove the now-invalid experimental.turbo entry.
+const config = withNextIntl(nextConfig);
+
+if (config.experimental?.turbo) {
+  config.turbopack = {
+    ...config.turbopack,
+    resolveAlias: {
+      ...config.turbopack?.resolveAlias,
+      ...config.experimental.turbo.resolveAlias,
+    },
+  };
+  delete config.experimental.turbo;
+  if (Object.keys(config.experimental).length === 0) {
+    delete config.experimental;
+  }
+}
+
+module.exports = config;

@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FLive — Visual Assets Brief</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #09090b;
+      --surface:   #18181b;
+      --surface2:  #27272a;
+      --border:    #3f3f46;
+      --violet:    #7c3aed;
+      --violet-dim:#4c1d95;
+      --violet-fg: #a78bfa;
+      --amber:     #d97706;
+      --amber-fg:  #fbbf24;
+      --text:      #f4f4f5;
+      --muted:     #a1a1aa;
+      --dim:       #71717a;
+      --green:     #4ade80;
+      --blue:      #60a5fa;
+      --red:       #f87171;
+      --sidebar-w: 240px;
+      --radius:    10px;
+    }
+
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; font-size: 14px; }
+
+    .layout { display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar { width: var(--sidebar-w); background: var(--surface); border-right: 1px solid var(--border); position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto; padding: 0 0 32px; }
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    .sidebar-logo { padding: 18px 16px 14px; border-bottom: 1px solid var(--border); }
+    .sidebar-logo strong { color: var(--violet-fg); font-size: .9rem; display: block; }
+    .sidebar-logo small { color: var(--dim); font-size: .7rem; }
+    .nav-group { padding: 12px 0 4px; }
+    .nav-group-label { padding: 0 16px 5px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--dim); }
+    .nav-link { display: block; padding: 5px 16px; font-size: .8rem; color: var(--muted); text-decoration: none; transition: color .15s, background .15s; }
+    .nav-link:hover { color: var(--text); background: var(--surface2); }
+    .nav-link.active { color: var(--violet-fg); background: color-mix(in srgb, var(--violet) 12%, transparent); }
+
+    /* Main */
+    .main { margin-left: var(--sidebar-w); flex: 1; padding: 0 0 80px; }
+
+    /* Page header */
+    .page-header { background: linear-gradient(160deg, #1e0a3c 0%, #09090b 80%); border-bottom: 1px solid var(--border); padding: 40px 48px 32px; }
+    .page-header .label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--violet); margin-bottom: 8px; }
+    .page-header h1 { font-size: 2rem; font-weight: 800; letter-spacing: -.5px; }
+    .page-header p { color: var(--muted); margin-top: 8px; max-width: 620px; font-size: .9rem; }
+
+    /* Section */
+    .section { padding: 36px 48px; border-bottom: 1px solid var(--border); }
+    .section:last-of-type { border-bottom: none; }
+    .section > h2 { font-size: 1.25rem; font-weight: 700; letter-spacing: -.3px; padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
+    .section > .desc { color: var(--muted); font-size: .85rem; margin-bottom: 20px; margin-top: 6px; }
+    h3 { font-size: .95rem; font-weight: 700; color: var(--violet-fg); margin: 22px 0 8px; }
+    h3:first-child { margin-top: 0; }
+    p { font-size: .85rem; color: var(--muted); margin: 5px 0; }
+
+    /* Priority badges */
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; white-space: nowrap; }
+    .p1 { background: color-mix(in srgb, #f87171 15%, transparent); color: #f87171; border: 1px solid #f87171; }
+    .p2 { background: color-mix(in srgb, #fb923c 15%, transparent); color: #fb923c; border: 1px solid #fb923c; }
+    .p3 { background: color-mix(in srgb, #fbbf24 15%, transparent); color: #fbbf24; border: 1px solid #fbbf24; }
+    .p4 { background: color-mix(in srgb, #71717a 15%, transparent); color: #a1a1aa; border: 1px solid #71717a; }
+
+    /* Asset cards */
+    .asset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin: 14px 0; }
+    .asset-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .asset-card-preview { height: 100px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--border); font-size: 2rem; position: relative; overflow: hidden; }
+    .asset-card-body { padding: 12px 14px; }
+    .asset-card-name { font-weight: 700; font-size: .88rem; margin-bottom: 2px; }
+    .asset-card-file { font-family: monospace; font-size: .75rem; color: var(--violet-fg); margin-bottom: 6px; }
+    .asset-card-meta { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; margin-top: 6px; }
+    .spec { background: var(--surface2); border-radius: 4px; padding: 2px 6px; font-size: 11px; color: var(--muted); font-family: monospace; }
+
+    /* Preview backgrounds */
+    .dark-preview { background: #09090b; }
+    .violet-preview { background: linear-gradient(135deg, #1e0a3c 0%, #4c1d95 50%, #7c3aed 100%); }
+    .glass-preview { background: linear-gradient(135deg, #1e0a3c, #09090b); }
+    .live-preview { background: linear-gradient(135deg, #0f0f0f 0%, #1e0a3c 100%); }
+    .og-preview { background: linear-gradient(135deg, #09090b, #1a0a30); }
+    .icon-preview { background: var(--surface2); }
+    .empty-preview { background: var(--surface2); }
+
+    /* Color chips */
+    .color-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+    .color-chip { border-radius: 8px; padding: 10px 14px; font-size: .75rem; font-weight: 600; font-family: monospace; border: 1px solid rgba(255,255,255,.1); }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+    th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--surface2); font-size: .83rem; vertical-align: top; }
+    thead th { background: var(--surface2); color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+    tbody tr:hover { background: var(--surface); }
+    td:first-child { white-space: nowrap; }
+    code { font-family: monospace; font-size: .77rem; background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; color: var(--violet-fg); }
+
+    /* Lists */
+    ul, ol { padding-left: 18px; color: var(--muted); font-size: .85rem; }
+    li { margin: 4px 0; }
+    li strong { color: var(--text); }
+
+    /* Note */
+    .note { background: color-mix(in srgb, var(--violet) 8%, transparent); border: 1px solid var(--violet-dim); border-radius: var(--radius); padding: 12px 16px; font-size: .83rem; color: var(--muted); margin: 12px 0; }
+    .note strong { color: var(--violet-fg); }
+
+    /* Two col */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* Mock scoreboard */
+    .score-mock { display: flex; align-items: center; gap: 8px; }
+    .score-mock .team { font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+    .score-mock .score { font-size: 20px; font-weight: 900; color: var(--amber-fg); }
+    .score-mock .sep { font-size: 14px; color: var(--dim); }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--red); display: inline-block; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    /* Logo mark mock */
+    .logo-mark {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: linear-gradient(135deg, #4c1d95, #7c3aed, #a78bfa);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 900; color: white;
+    }
+
+    hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; }
+      .section, .page-header { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <strong>FLive</strong>
+    <small>Visual Assets Brief</small>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Brand</div>
+    <a class="nav-link" href="#brand">Logo &amp; Identity</a>
+    <a class="nav-link" href="#colors">Color Palette</a>
+    <a class="nav-link" href="#typography">Typography</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">System Icons</div>
+    <a class="nav-link" href="#favicon">Favicon Pack</a>
+    <a class="nav-link" href="#pwa">PWA Icons</a>
+    <a class="nav-link" href="#apple">Apple / Windows</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">UI Assets</div>
+    <a class="nav-link" href="#empty-states">Empty States</a>
+    <a class="nav-link" href="#placeholders">Placeholders</a>
+    <a class="nav-link" href="#illustrations">Feature Illustrations</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Marketing</div>
+    <a class="nav-link" href="#og">Social / OG Images</a>
+    <a class="nav-link" href="#screenshots">PWA Screenshots</a>
+    <a class="nav-link" href="#landing">Landing Images</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Reference</div>
+    <a class="nav-link" href="#checklist">Master Checklist</a>
+    <a class="nav-link" href="#export">Export Guidelines</a>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+<div class="page-header">
+  <div class="label">Design Brief</div>
+  <h1>Visual Assets Specification</h1>
+  <p>Complete reference for every image, icon, illustration, and background asset needed for FLive — with exact dimensions, color specs, file formats, and priority ratings.</p>
+  <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
+    <span class="badge p1">🔴 P1 — Launch blocker</span>
+    <span class="badge p2">🟠 P2 — Required before users see it</span>
+    <span class="badge p3">🟡 P3 — Nice to have at launch</span>
+    <span class="badge p4">⚪ P4 — Post-launch polish</span>
+  </div>
+</div>
+
+<!-- BRAND -->
+<div class="section" id="brand">
+  <h2>Logo &amp; Brand Identity</h2>
+  <p class="desc">All versions from a single Figma/Illustrator master. Export SVG + PNG from the same file to guarantee pixel-accuracy. The brand is built on violet primary + amber accent (live elements).</p>
+
+  <div class="asset-grid">
+    <div class="asset-card">
+      <div class="asset-card-preview dark-preview" style="gap:10px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="logo-mark">F</div>
+          <div style="font-weight:900;font-size:20px;color:#f4f4f5;letter-spacing:-1px">FLive</div>
+        </div>
+      </div>
+      <div class="asset-card-body">
+        <div class="asset-card-name">Logo — Horizontal</div>
+        <div class="asset-card-file">public/logo-horizontal.svg / .png</div>
+        <p>Mark + wordmark side by side. Primary lockup for the dashboard sidebar, public header, and emails.</p>
+        <div class="asset-card-meta">
+          <span class="spec">SVG primary</span><span class="spec">PNG @1x @2x @3x</span>
+          <span class="badge p1">P1</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="asset-card">
+      <div class="asset-card-preview dark-preview" style="flex-direction:column;gap:6px">
+        <div class="logo-mark">F</div>
+        <div style="font-weight:900;font-size:13px;color:#f4f4f5;text-align:center;letter-spacing:-.5px">FLive</div>
+      </div>
+      <div class="asset-card-body">
+        <div class="asset-card-name">Logo — Stacked</div>
+        <div class="asset-card-file">public/logo-stacked.svg / .png</div>
+        <p>Mark above wordmark. Used in PWA splash screens and square contexts (social cards).</p>
+        <div class="asset-card-meta">
+          <span class="spec">SVG primary</span><span class="spec">512×512 canvas</span>
+          <span class="badge p2">P2</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="asset-card">
+      <div class="asset-card-preview dark-preview">
+        <div class="logo-mark" style="width:64px;height:64px;border-radius:16px;font-size:28px">F</div>
+      </div>
+      <div class="asset-card-body">
+        <div class="asset-card-name">App Icon / Mark</div>
+        <div class="asset-card-file">public/logo-mark.svg / .png</div>
+        <p>Just the icon symbol — no text. Used for favicons, PWA icons, notification badges. Must be legible at 16px. Consider a football / signal / play icon rather than a lettermark.</p>
+        <div class="asset-card-meta">
+          <span class="spec">SVG primary</span><span class="spec">Legible @ 16px</span>
+          <span class="badge p1">P1</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="asset-card">
+      <div class="asset-card-preview" style="background:#f8f8ff">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#4c1d95,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff">F</div>
+          <div style="font-weight:900;font-size:14px;color:#1c1028;letter-spacing:-.5px">FLive</div>
+        </div>
+      </div>
+      <div class="asset-card-body">
+        <div class="asset-card-name">Logo — Light Background</div>
+        <div class="asset-card-file">public/logo-light.svg / .png</div>
+        <p>Light-mode safe version for print, emails, white backgrounds. Wordmark in near-black. Gradient mark still works.</p>
+        <div class="asset-card-meta">
+          <span class="spec">SVG primary</span>
+          <span class="badge p3">P3</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="asset-card">
+      <div class="asset-card-preview" style="background:#09090b">
+        <div style="font-weight:900;font-size:22px;background:linear-gradient(135deg,#4c1d95,#7c3aed,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent">FL</div>
+      </div>
+      <div class="asset-card-body">
+        <div class="asset-card-name">Monogram</div>
+        <div class="asset-card-file">public/logo-monogram.svg</div>
+        <p>"FL" lettermark for watermarks, embossing, or contexts where the full mark is too large.</p>
+        <div class="asset-card-meta">
+          <span class="spec">SVG only</span>
+          <span class="badge p4">P4</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="asset-card">
+      <div class="asset-card-preview" style="background:white">
+        <div style="width:64px;height:64px;background:#09090b;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:white">F</div>
+      </div>
+      <div class="asset-card-body">
+        <div class="asset-card-name">Monochrome Logo</div>
+        <div class="asset-card-file">public/logo-mono-white.svg / logo-mono-black.svg</div>
+        <p>Solid white and solid black versions for embroidery, stamps, print contexts where colour is unavailable.</p>
+        <div class="asset-card-meta">
+          <span class="spec">SVG only</span>
+          <span class="badge p4">P4</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>Logo concept direction:</strong> The mark should communicate <em>live sports broadcasting</em> — consider combining a football with a signal/broadcast icon, a play button with a pitch line, or a bold "F" in a rounded rectangle with a live pulse dot. Geometric, bold, minimal. The wordmark should match the system font — bold Inter or a similar sans-serif geometric. The violet gradient (<code>#4c1d95 → #7c3aed → #a78bfa</code>) is the identity colour. Amber (<code>#fbbf24</code>) appears only on live indicators, scores, and the clock — never in the logo itself.
+  </div>
+</div>
+
+<!-- COLORS -->
+<div class="section" id="colors">
+  <h2>Definitive Color Palette</h2>
+  <p class="desc">All assets must use these values. Violet is the identity colour. Amber is reserved for live/active states only. Never use gold tones in the logo or primary UI — that belongs to the sibling fcp-web project.</p>
+
+  <h3>Primary — Violet</h3>
+  <div class="color-row">
+    <div class="color-chip" style="background:#a78bfa;color:#1c0a3c">Violet 400<br>#a78bfa</div>
+    <div class="color-chip" style="background:#7c3aed;color:#fff">Violet 600<br>#7c3aed</div>
+    <div class="color-chip" style="background:#6d28d9;color:#fff">Violet 700<br>#6d28d9</div>
+    <div class="color-chip" style="background:#4c1d95;color:#ddd6fe">Violet 900<br>#4c1d95</div>
+    <div class="color-chip" style="background:#2e1065;color:#ddd6fe">Violet 950<br>#2e1065</div>
+    <div class="color-chip" style="background:#1e0a3c;color:#c4b5fd">Violet BG<br>#1e0a3c</div>
+  </div>
+
+  <h3>Accent — Amber (live elements only)</h3>
+  <div class="color-row">
+    <div class="color-chip" style="background:#fbbf24;color:#1c0f04">Amber 400<br>#fbbf24</div>
+    <div class="color-chip" style="background:#d97706;color:#fff8e6">Amber 600<br>#d97706</div>
+    <div class="color-chip" style="background:#b45309;color:#fef3c7">Amber 700<br>#b45309</div>
+  </div>
+
+  <h3>App Backgrounds</h3>
+  <div class="color-row">
+    <div class="color-chip" style="background:#09090b;color:#71717a;border-color:#27272a">BG Dark<br>#09090b</div>
+    <div class="color-chip" style="background:#18181b;color:#a1a1aa;border-color:#27272a">Surface<br>#18181b</div>
+    <div class="color-chip" style="background:#27272a;color:#a1a1aa">Surface 2<br>#27272a</div>
+    <div class="color-chip" style="background:#3f3f46;color:#d4d4d8">Border<br>#3f3f46</div>
+    <div class="color-chip" style="background:#f8f8ff;color:#1c1028">BG Light<br>#f8f8ff</div>
+  </div>
+
+  <h3>Semantic Colours</h3>
+  <div class="color-row">
+    <div class="color-chip" style="background:#f87171;color:#fff">Destructive/Red<br>#f87171</div>
+    <div class="color-chip" style="background:#4ade80;color:#052e16">Success/Green<br>#4ade80</div>
+    <div class="color-chip" style="background:#60a5fa;color:#fff">Info/Blue<br>#60a5fa</div>
+    <div class="color-chip" style="background:#fb923c;color:#fff">Warning/Orange<br>#fb923c</div>
+  </div>
+
+  <h3>Brand Gradient</h3>
+  <div style="height:48px;border-radius:10px;background:linear-gradient(135deg,#4c1d95 0%,#7c3aed 50%,#a78bfa 100%);margin:10px 0"></div>
+  <p><code>135deg, #4c1d95 → #7c3aed → #a78bfa</code> — used for CTAs, hero elements, the logo mark, and the <code>.gradient-brand</code> utility class.</p>
+</div>
+
+<!-- TYPOGRAPHY -->
+<div class="section" id="typography">
+  <h2>Typography Reference</h2>
+  <p class="desc">For any asset that includes text. FLive uses the system font stack — no Google Fonts to load.</p>
+  <table>
+    <thead><tr><th>Role</th><th>Font</th><th>Weight</th><th>Use in assets</th></tr></thead>
+    <tbody>
+      <tr><td>Logo wordmark</td><td>Inter / system-ui</td><td>800 ExtraBold</td><td>Logo, marketing headers</td></tr>
+      <tr><td>UI text / body</td><td>Inter / system-ui</td><td>400–600</td><td>Descriptions, labels in marketing images</td></tr>
+      <tr><td>Score / clock</td><td>Inter / system-ui</td><td>900 Black</td><td>Large score numbers, live clock — amber colour</td></tr>
+      <tr><td>Team names</td><td>Inter / system-ui</td><td>700 Bold</td><td>Scoreboard in marketing shots</td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:10px">Download <strong>Inter</strong> from Google Fonts or use locally installed system-ui. The in-app font is the system-ui stack, so marketing assets should match this — no serif fonts, no display faces.</p>
+</div>
+
+<!-- FAVICON -->
+<div class="section" id="favicon">
+  <h2>Favicon Pack</h2>
+  <p class="desc">All favicon files go into <code>public/</code>. Reference them in <code>src/app/[locale]/layout.tsx</code> metadata. Generate from the app mark (not the full horizontal logo).</p>
+
+  <table>
+    <thead><tr><th>File</th><th>Size</th><th>Format</th><th>Purpose</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr><td><code>public/favicon.ico</code></td><td>16×16 + 32×32</td><td>ICO (multi-size)</td><td>All browsers fallback, browser tab</td><td><span class="badge p1">P1</span></td></tr>
+      <tr><td><code>public/favicon-16x16.png</code></td><td>16×16</td><td>PNG</td><td>Small browser tab</td><td><span class="badge p1">P1</span></td></tr>
+      <tr><td><code>public/favicon-32x32.png</code></td><td>32×32</td><td>PNG</td><td>Standard browser tab, bookmarks</td><td><span class="badge p1">P1</span></td></tr>
+      <tr><td><code>public/favicon.svg</code></td><td>Scalable</td><td>SVG</td><td>Modern browsers — crisp at any size</td><td><span class="badge p1">P1</span></td></tr>
+      <tr><td><code>public/apple-touch-icon.png</code></td><td>180×180</td><td>PNG</td><td>iOS "Add to Home Screen"</td><td><span class="badge p1">P1</span></td></tr>
+      <tr><td><code>public/safari-pinned-tab.svg</code></td><td>Scalable</td><td>SVG monochrome</td><td>Safari pinned tab — pure black paths on transparent</td><td><span class="badge p2">P2</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <strong>favicon.svg dark-mode tip:</strong>
+    Add a <code>&lt;style&gt;</code> block inside the SVG: <code>@media (prefers-color-scheme: dark) { .mark { fill: #a78bfa; } }</code>. This makes the mark violet on dark OS themes and dark violet on light themes — automatically adapts without JS.
+  </div>
+
+  <h3>Recommended workflow</h3>
+  <p>Generate the entire favicon pack from a single 512×512 master SVG using <strong>RealFaviconGenerator.net</strong>. Upload the mark only — not the full horizontal logo — so it reads at 16px.</p>
+</div>
+
+<!-- PWA ICONS -->
+<div class="section" id="pwa">
+  <h2>PWA Icons</h2>
+  <p class="desc">Required by <code>public/manifest.json</code>. All go in <code>public/icons/</code>. The manifest already lists these paths — files just need to exist.</p>
+
+  <table>
+    <thead><tr><th>File</th><th>Size</th><th>Purpose</th><th>Maskable?</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr><td><code>public/icons/icon-72.png</code></td><td>72×72</td><td>Small Android home screen</td><td>No</td><td><span class="badge p1">P1</span></td></tr>
+      <tr><td><code>public/icons/icon-96.png</code></td><td>96×96</td><td>Android notification, PWA shortcuts</td><td>No</td><td><span class="badge p1">P1</span></td></tr>
+      <tr><td><code>public/icons/icon-128.png</code></td><td>128×128</td><td>Chrome Web Store, Chromebook</td><td>No</td><td><span class="badge p1">P1</span></td></tr>
+      <tr><td><code>public/icons/icon-192.png</code></td><td>192×192</td><td>Android "Add to Home Screen" prompt — critical</td><td><strong>Yes</strong></td><td><span class="badge p1">P1</span></td></tr>
+      <tr><td><code>public/icons/icon-384.png</code></td><td>384×384</td><td>High-res Android</td><td>No</td><td><span class="badge p2">P2</span></td></tr>
+      <tr><td><code>public/icons/icon-512.png</code></td><td>512×512</td><td>Android splash screen — critical</td><td><strong>Yes</strong></td><td><span class="badge p1">P1</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="two-col" style="margin-top:14px">
+    <div>
+      <h3>Maskable icon safe zone</h3>
+      <p>For icon-192.png and icon-512.png (marked <code>purpose: "any maskable"</code>), the visible mark must stay within the centre <strong>80%</strong> of the canvas. Android clips icons into circles, squircles, or other shapes — content outside the safe zone gets cut.</p>
+      <div style="margin:12px 0;width:100px;height:100px;border-radius:10px;background:linear-gradient(135deg,#2e1065,#4c1d95);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;position:relative">
+        <div style="position:absolute;inset:10%;border:2px dashed #6d28d9;border-radius:8px"></div>
+        <div class="logo-mark" style="width:52px;height:52px">F</div>
+      </div>
+      <p>Violet background fills full canvas. Mark stays within the dashed safe zone.</p>
+    </div>
+    <div>
+      <h3>Recommended canvas spec</h3>
+      <ul>
+        <li><strong>Background:</strong> <code>#4c1d95</code> (violet-900 — matches manifest theme_color)</li>
+        <li><strong>Mark colour:</strong> White or <code>#a78bfa</code> on violet bg</li>
+        <li><strong>Safe zone:</strong> Centre 80% — mark only, no wordmark</li>
+        <li><strong>Border-radius on canvas:</strong> 0px — OS applies clipping</li>
+        <li><strong>Format:</strong> PNG-24 with no transparency for maskable</li>
+        <li><strong>Update manifest:</strong> Set <code>theme_color: "#4c1d95"</code></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- APPLE / WINDOWS -->
+<div class="section" id="apple">
+  <h2>Apple &amp; Windows Platform Icons</h2>
+  <p class="desc">Platform-specific touch icons beyond the standard PWA set.</p>
+
+  <table>
+    <thead><tr><th>File</th><th>Size</th><th>Platform</th><th>Notes</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr><td><code>public/apple-touch-icon.png</code></td><td>180×180</td><td>iOS / iPadOS</td><td>No transparency. Violet background. Rounded corners applied automatically by iOS.</td><td><span class="badge p1">P1</span></td></tr>
+      <tr><td><code>public/apple-touch-icon-precomposed.png</code></td><td>180×180</td><td>Older iOS</td><td>Same as above — older iOS won't add gloss.</td><td><span class="badge p3">P3</span></td></tr>
+      <tr><td><code>public/mstile-150x150.png</code></td><td>150×150</td><td>Windows 10 Start</td><td>Mark on violet background. Add <code>&lt;meta name="msapplication-TileColor" content="#4c1d95"&gt;</code>.</td><td><span class="badge p3">P3</span></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- EMPTY STATES -->
+<div class="section" id="empty-states">
+  <h2>Empty State Illustrations</h2>
+  <p class="desc">Shown when a reporter has no matches or data yet. SVG illustrations — not photos or clipart. Style: minimal, geometric, football-themed. Violet palette. Approx 280×200 px display size.</p>
+
+  <div class="asset-grid">
+    <div class="asset-card">
+      <div class="asset-card-preview empty-preview">📋</div>
+      <div class="asset-card-body">
+        <div class="asset-card-name">No Matches</div>
+        <div class="asset-card-file">public/illustrations/empty-matches.svg</div>
+        <p>Shown on dashboard when reporter has no matches. A whistle or football with a "+" hint. "Create your first match" tone.</p>
+        <div class="asset-card-meta"><span class="spec">SVG</span><span class="spec">280×200</span><span class="badge p1">P1</span></div>
+      </div>
+    </div>
+
+    <div class="asset-card">
+      <div class="asset-card-preview empty-preview">📡</div>
+      <div class="asset-card-body">
+        <div class="asset-card-name">No Live Matches</div>
+        <div class="asset-card-file">public/illustrations/empty-live.svg</div>
+        <p>Shown on public home when no matches are currently live. A broadcast tower with a dimmed signal. "Nothing live right now" tone.</p>
+        <div class="asset-card-meta"><span class="spec">SVG</span><span class="spec">280×200</span><span class="badge p2">P2</span></div>
+      </div>
+    </div>
+
+    <div class="asset-card">
+      <div class="asset-card-preview empty-preview">🏟️</div>
+      <div class="asset-card-body">
+        <div class="asset-card-name">No Teams Saved</div>
+        <div class="asset-card-file">public/illustrations/empty-teams.svg</div>
+        <p>Shown in Settings when reporter has no saved teams. Stadium silhouette or shirt icon. "Add your club's team" tone.</p>
+        <div class="asset-card-meta"><span class="spec">SVG</span><span class="spec">280×200</span><span class="badge p2">P2</span></div>
+      </div>
+    </div>
+
+    <div class="asset-card">
+      <div class="asset-card-preview empty-preview">📅</div>
+      <div class="asset-card-body">
+        <div class="asset-card-name">No Upcoming Matches</div>
+        <div class="asset-card-file">public/illustrations/empty-upcoming.svg</div>
+        <p>Shown on home page Upcoming tab when nothing scheduled. Calendar with a football. "No matches this week" tone.</p>
+        <div class="asset-card-meta"><span class="spec">SVG</span><span class="spec">280×200</span><span class="badge p3">P3</span></div>
+      </div>
+    </div>
+
+    <div class="asset-card">
+      <div class="asset-card-preview empty-preview">🔴</div>
+      <div class="asset-card-body">
+        <div class="asset-card-name">Offline Page</div>
+        <div class="asset-card-file">public/illustrations/offline.svg</div>
+        <p>Used on cached <code>/offline</code> page (served by Service Worker). A disconnected plug or signal icon. Dark, warm violet tones. "You're offline" tone — not alarming.</p>
+        <div class="asset-card-meta"><span class="spec">SVG</span><span class="spec">280×200</span><span class="badge p2">P2</span></div>
+      </div>
+    </div>
+
+    <div class="asset-card">
+      <div class="asset-card-preview empty-preview">⚠️</div>
+      <div class="asset-card-body">
+        <div class="asset-card-name">Error State</div>
+        <div class="asset-card-file">public/illustrations/error.svg</div>
+        <p>Used in <code>error.tsx</code> and <code>global-error.tsx</code> boundary pages. A broken signal or warning triangle. Not alarming — matter-of-fact.</p>
+        <div class="asset-card-meta"><span class="spec">SVG</span><span class="spec">280×200</span><span class="badge p2">P2</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>Illustration style guide:</strong> Minimal geometric shapes. Max 4–5 colours per illustration (violet palette + one accent). No gradients inside SVG paths — solid fills only for CSS adaptability. All illustrations should work on both dark and light backgrounds. Use <code>currentColor</code> for outlines and icon paths where possible so they adapt to theme.
+  </div>
+</div>
+
+<!-- PLACEHOLDERS -->
+<div class="section" id="placeholders">
+  <h2>Placeholders</h2>
+  <p class="desc">Shown when content has no associated image. Should be on-brand and intentional — not broken-image grey boxes.</p>
+
+  <div class="asset-grid">
+    <div class="asset-card">
+      <div class="asset-card-preview icon-preview">
+        <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#27272a,#3f3f46);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:28px">🏟️</div>
+      </div>
+      <div class="asset-card-body">
+        <div class="asset-card-name">Match Thumbnail Placeholder</div>
+        <div class="asset-card-file">public/placeholders/match-thumb.svg</div>
+        <p>Fallback shown in any match card or OG image when no specific image is available. Football + pitch line — geometric, violet toned.</p>
+        <div class="asset-card-meta"><span class="spec">SVG</span><span class="spec">Square</span><span class="badge p2">P2</span></div>
+      </div>
+    </div>
+
+    <div class="asset-card">
+      <div class="asset-card-preview icon-preview">
+        <div style="width:72px;height:72px;border-radius:12px;background:linear-gradient(135deg,#27272a,#3f3f46);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:28px">🛡️</div>
+      </div>
+      <div class="asset-card-body">
+        <div class="asset-card-name">Team Logo Placeholder</div>
+        <div class="asset-card-file">public/placeholders/team-logo.svg</div>
+        <p>Generic shield / crest outline for teams with no logo. Used on the scoreboard and match cards. Should not resemble any real club.</p>
+        <div class="asset-card-meta"><span class="spec">SVG</span><span class="spec">Square</span><span class="badge p2">P2</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURE ILLUSTRATIONS -->
+<div class="section" id="illustrations">
+  <h2>Feature Illustrations</h2>
+  <p class="desc">Inline SVG illustrations used inside the app UI to explain features or guide new reporters. These are small, inline, decorative — not page-level empty states.</p>
+
+  <div class="asset-grid">
+    <div class="asset-card">
+      <div class="asset-card-preview violet-preview">⚡</div>
+      <div class="asset-card-body">
+        <div class="asset-card-name">Live Broadcast Indicator</div>
+        <div class="asset-card-file">public/illustrations/live-signal.svg</div>
+        <p>Animated SVG — radiating concentric arcs from a centre dot, pulsing. Used on the broadcast page header alongside the "LIVE" badge. Loop forever while match is live.</p>
+        <div class="asset-card-meta"><span class="spec">Animated SVG</span><span class="spec">64×64</span><span class="badge p2">P2</span></div>
+      </div>
+    </div>
+
+    <div class="asset-card">
+      <div class="asset-card-preview empty-preview">📴</div>
+      <div class="asset-card-body">
+        <div class="asset-card-name">Offline Warning Icon</div>
+        <div class="asset-card-file">public/illustrations/offline-indicator.svg</div>
+        <p>Small inline icon used in the LiveControlPanel offline warning banner. Disconnected wifi or plug symbol. Amber-tinted (warning, not error).</p>
+        <div class="asset-card-meta"><span class="spec">SVG</span><span class="spec">24×24</span><span class="badge p3">P3</span></div>
+      </div>
+    </div>
+
+    <div class="asset-card">
+      <div class="asset-card-preview live-preview">
+        <div style="text-align:center">
+          <div class="score-mock" style="justify-content:center">
+            <span class="team">TJ Sokol</span>
+            <span class="score">2</span>
+            <span class="sep">:</span>
+            <span class="score">1</span>
+            <span class="team">AC Sparta</span>
+          </div>
+          <div style="font-size:9px;color:var(--amber-fg);margin-top:4px;display:flex;align-items:center;gap:4px;justify-content:center">
+            <span class="live-dot"></span> 73'
+          </div>
+        </div>
+      </div>
+      <div class="asset-card-body">
+        <div class="asset-card-name">Scoreboard Preview (Marketing)</div>
+        <div class="asset-card-file">public/illustrations/scoreboard-preview.svg / .png</div>
+        <p>A polished render of the live scoreboard UI — used in OG images and landing page screenshots. Must look like the actual app. Can be a real screenshot or an SVG mockup.</p>
+        <div class="asset-card-meta"><span class="spec">PNG</span><span class="spec">600×400</span><span class="badge p3">P3</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OG IMAGES -->
+<div class="section" id="og">
+  <h2>Social &amp; Open Graph Images</h2>
+  <p class="desc">Shown when FLive URLs are shared on WhatsApp, Facebook, iMessage, Slack. Critical for trust — a missing OG image looks broken. Reference in <code>src/app/[locale]/layout.tsx</code> metadata.</p>
+
+  <div class="asset-grid">
+    <div class="asset-card">
+      <div class="asset-card-preview og-preview" style="flex-direction:column;gap:4px">
+        <div class="score-mock">
+          <span class="live-dot"></span>
+          <span style="font-size:9px;color:var(--muted);font-weight:700;letter-spacing:1px;text-transform:uppercase">LIVE</span>
+        </div>
+        <div style="font-size:10px;color:var(--violet-fg);font-weight:800;letter-spacing:1px">FLIVE</div>
+        <div style="font-size:8px;color:var(--muted)">Live football for every club</div>
+      </div>
+      <div class="asset-card-body">
+        <div class="asset-card-name">Main OG Image</div>
+        <div class="asset-card-file">public/og-image.png</div>
+        <p>Default social preview for the landing page and any page without a specific OG. Logo + tagline + a live scoreboard mockup on a dark violet background. <strong>Most important marketing asset.</strong></p>
+        <div class="asset-card-meta">
+          <span class="spec">PNG</span><span class="spec">1200×630</span><span class="spec">72dpi</span>
+          <span class="badge p1">P1</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="asset-card">
+      <div class="asset-card-preview og-preview" style="flex-direction:column;gap:6px">
+        <div class="score-mock" style="justify-content:center">
+          <span class="team">TJ Sokol</span>
+          <span class="score" style="font-size:28px">2</span>
+          <span class="sep" style="font-size:18px">:</span>
+          <span class="score" style="font-size:28px">1</span>
+          <span class="team">AC Sparta</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;justify-content:center">
+          <span class="live-dot"></span>
+          <span style="font-size:9px;color:var(--amber-fg);font-weight:700">LIVE · 73'</span>
+        </div>
+      </div>
+      <div class="asset-card-body">
+        <div class="asset-card-name">Match Share OG (Dynamic)</div>
+        <div class="asset-card-file">Generated per-match via API route</div>
+        <p>Ideally generated dynamically via <code>next/og</code> ImageResponse at <code>/api/og/match/[id]</code>. Shows live score, team names, FLive logo. Until dynamic generation is built, use the static fallback below.</p>
+        <div class="asset-card-meta">
+          <span class="spec">ImageResponse / PNG</span><span class="spec">1200×630</span>
+          <span class="badge p2">P2</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="asset-card">
+      <div class="asset-card-preview og-preview">⚽</div>
+      <div class="asset-card-body">
+        <div class="asset-card-name">Match OG — Static Fallback</div>
+        <div class="asset-card-file">public/og-match-fallback.png</div>
+        <p>Static fallback before dynamic OG generation is implemented. A generic "Live Match Broadcast" tease with the FLive logo. Used when sharing the broadcast URL.</p>
+        <div class="asset-card-meta">
+          <span class="spec">PNG</span><span class="spec">1200×630</span>
+          <span class="badge p2">P2</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>OG image composition guide:</strong> Dark background <code>#09090b</code>. FLive logo top-left. Live red dot + "LIVE" badge prominent. Scoreboard mockup centred — large score numbers in amber (<code>#fbbf24</code>), team names in white. Tagline: <em>"Živý přenos fotbalového zápasu"</em>. Keep all content within the centre 80% safe zone — platforms sometimes crop edges. Text must be readable at 300×158px thumbnail preview size.
+  </div>
+</div>
+
+<!-- PWA SCREENSHOTS -->
+<div class="section" id="screenshots">
+  <h2>PWA Screenshots</h2>
+  <p class="desc">Referenced in <code>public/manifest.json</code> — shown in browser PWA install dialogs. Should be actual dark-theme app screenshots, not mockups.</p>
+
+  <table>
+    <thead><tr><th>File</th><th>Size</th><th>Form factor</th><th>Screen to capture</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>public/screenshots/broadcast.png</code></td>
+        <td>1280×720</td>
+        <td>Wide (desktop)</td>
+        <td>Live broadcast page — scoreboard with a real match in progress, amber clock showing 67', event feed below with goals and cards. Captures the core viewer experience.</td>
+        <td><span class="badge p2">P2</span></td>
+      </tr>
+      <tr>
+        <td><code>public/screenshots/dashboard-mobile.png</code></td>
+        <td>390×844</td>
+        <td>Narrow (mobile)</td>
+        <td>Reporter dashboard — "Live" tab with a match card showing the pulsing live indicator. Shows bottom nav and the mobile-first reporter workflow.</td>
+        <td><span class="badge p3">P3</span></td>
+      </tr>
+      <tr>
+        <td><code>public/screenshots/control-panel.png</code></td>
+        <td>1280×720</td>
+        <td>Wide (desktop)</td>
+        <td>Match control panel — scoreboard + LiveControlPanel with event buttons visible. Showcases the reporter broadcast interface. Second screenshot in the install dialog.</td>
+        <td><span class="badge p3">P3</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>Screenshots can be taken from the browser (DevTools device mode). A real match needs to be in progress — seed Firestore with a test match at 67' with a couple of goal events before capturing.</p>
+</div>
+
+<!-- LANDING IMAGES -->
+<div class="section" id="landing">
+  <h2>Landing Page Images</h2>
+  <p class="desc">Used on <code>src/app/[locale]/page.tsx</code>. These are the "selling" visuals — they convince a club volunteer to sign up. Dark, live-sports energy.</p>
+
+  <div class="asset-grid">
+    <div class="asset-card">
+      <div class="asset-card-preview violet-preview" style="flex-direction:column;gap:4px">
+        <div class="score-mock">
+          <span class="live-dot"></span>
+          <span class="team" style="color:#f4f4f5">TJ Sokol</span>
+          <span class="score">2</span>
+          <span class="sep">:</span>
+          <span class="score">1</span>
+          <span class="team" style="color:#f4f4f5">AC Sparta</span>
+        </div>
+        <div style="font-size:8px;color:var(--amber-fg);font-weight:700">LIVE · 73' · U15 Liga</div>
+      </div>
+      <div class="asset-card-body">
+        <div class="asset-card-name">Hero Feature Image</div>
+        <div class="asset-card-file">public/marketing/hero-broadcast.png</div>
+        <p>The live scoreboard UI shown on a phone/laptop in a stadium atmosphere. Violet glow. Amber clock. This is the first visual visitors see — must immediately communicate "live match on your phone."</p>
+        <div class="asset-card-meta">
+          <span class="spec">PNG</span><span class="spec">1200×800</span><span class="spec">@2x</span>
+          <span class="badge p2">P2</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="asset-card">
+      <div class="asset-card-preview dark-preview">⌨️</div>
+      <div class="asset-card-body">
+        <div class="asset-card-name">Control Panel Feature</div>
+        <div class="asset-card-file">public/marketing/feature-control.png</div>
+        <p>Shows the reporter's LiveControlPanel — event buttons, clock, phase transitions. Emphasises "one person can broadcast a whole match." Dark UI, violet event buttons.</p>
+        <div class="asset-card-meta">
+          <span class="spec">PNG</span><span class="spec">800×600</span>
+          <span class="badge p3">P3</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="asset-card">
+      <div class="asset-card-preview dark-preview">📴</div>
+      <div class="asset-card-body">
+        <div class="asset-card-name">Offline Feature</div>
+        <div class="asset-card-file">public/marketing/feature-offline.png</div>
+        <p>Shows the offline queue notification — events queued, pending sync badge. Emphasises resilience: "even without signal, no goal is missed."</p>
+        <div class="asset-card-meta">
+          <span class="spec">PNG</span><span class="spec">800×600</span>
+          <span class="badge p3">P3</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="asset-card">
+      <div class="asset-card-preview dark-preview">🔗</div>
+      <div class="asset-card-body">
+        <div class="asset-card-name">Share Feature</div>
+        <div class="asset-card-file">public/marketing/feature-share.png</div>
+        <p>A QR code overlaid on a phone showing the broadcast URL. Shows how easy it is to share the live feed with a WhatsApp group before kick-off.</p>
+        <div class="asset-card-meta">
+          <span class="spec">PNG</span><span class="spec">800×600</span>
+          <span class="badge p3">P3</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHECKLIST -->
+<div class="section" id="checklist">
+  <h2>Master Checklist</h2>
+  <p class="desc">All assets in priority order. Use as the handoff checklist with a designer.</p>
+
+  <h3>🔴 P1 — Must exist before launch (app broken without these)</h3>
+  <table>
+    <thead><tr><th>Asset</th><th>File path</th><th>Format</th><th>Size</th></tr></thead>
+    <tbody>
+      <tr><td>App icon / mark</td><td><code>public/logo-mark.svg</code></td><td>SVG</td><td>—</td></tr>
+      <tr><td>Logo horizontal</td><td><code>public/logo-horizontal.svg</code></td><td>SVG + PNG</td><td>—</td></tr>
+      <tr><td>Favicon .ico</td><td><code>public/favicon.ico</code></td><td>ICO</td><td>16+32px</td></tr>
+      <tr><td>Favicon 16px</td><td><code>public/favicon-16x16.png</code></td><td>PNG</td><td>16×16</td></tr>
+      <tr><td>Favicon 32px</td><td><code>public/favicon-32x32.png</code></td><td>PNG</td><td>32×32</td></tr>
+      <tr><td>Favicon SVG</td><td><code>public/favicon.svg</code></td><td>SVG</td><td>—</td></tr>
+      <tr><td>Apple touch icon</td><td><code>public/apple-touch-icon.png</code></td><td>PNG</td><td>180×180</td></tr>
+      <tr><td>PWA icon 72</td><td><code>public/icons/icon-72.png</code></td><td>PNG</td><td>72×72</td></tr>
+      <tr><td>PWA icon 96</td><td><code>public/icons/icon-96.png</code></td><td>PNG</td><td>96×96</td></tr>
+      <tr><td>PWA icon 128</td><td><code>public/icons/icon-128.png</code></td><td>PNG</td><td>128×128</td></tr>
+      <tr><td>PWA icon 192 (maskable)</td><td><code>public/icons/icon-192.png</code></td><td>PNG</td><td>192×192</td></tr>
+      <tr><td>PWA icon 512 (maskable)</td><td><code>public/icons/icon-512.png</code></td><td>PNG</td><td>512×512</td></tr>
+      <tr><td>No Matches empty state</td><td><code>public/illustrations/empty-matches.svg</code></td><td>SVG</td><td>280×200</td></tr>
+      <tr><td>Main OG image</td><td><code>public/og-image.png</code></td><td>PNG</td><td>1200×630</td></tr>
+    </tbody>
+  </table>
+
+  <h3>🟠 P2 — Required before users see those features</h3>
+  <table>
+    <thead><tr><th>Asset</th><th>File path</th></tr></thead>
+    <tbody>
+      <tr><td>Logo stacked</td><td><code>public/logo-stacked.svg</code></td></tr>
+      <tr><td>Safari pinned tab</td><td><code>public/safari-pinned-tab.svg</code></td></tr>
+      <tr><td>PWA icon 384</td><td><code>public/icons/icon-384.png</code></td></tr>
+      <tr><td>No Live Matches empty state</td><td><code>public/illustrations/empty-live.svg</code></td></tr>
+      <tr><td>No Teams empty state</td><td><code>public/illustrations/empty-teams.svg</code></td></tr>
+      <tr><td>Offline page illustration</td><td><code>public/illustrations/offline.svg</code></td></tr>
+      <tr><td>Error state illustration</td><td><code>public/illustrations/error.svg</code></td></tr>
+      <tr><td>Live broadcast indicator (animated)</td><td><code>public/illustrations/live-signal.svg</code></td></tr>
+      <tr><td>Match thumbnail placeholder</td><td><code>public/placeholders/match-thumb.svg</code></td></tr>
+      <tr><td>Team logo placeholder</td><td><code>public/placeholders/team-logo.svg</code></td></tr>
+      <tr><td>Match OG fallback</td><td><code>public/og-match-fallback.png</code></td></tr>
+      <tr><td>PWA screenshot — broadcast</td><td><code>public/screenshots/broadcast.png</code></td></tr>
+      <tr><td>Hero feature image</td><td><code>public/marketing/hero-broadcast.png</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>🟡 P3 — Nice to have at launch</h3>
+  <table>
+    <thead><tr><th>Asset</th><th>File path</th></tr></thead>
+    <tbody>
+      <tr><td>Logo light variant</td><td><code>public/logo-light.svg</code></td></tr>
+      <tr><td>Apple touch icon precomposed</td><td><code>public/apple-touch-icon-precomposed.png</code></td></tr>
+      <tr><td>Windows tile</td><td><code>public/mstile-150x150.png</code></td></tr>
+      <tr><td>No Upcoming empty state</td><td><code>public/illustrations/empty-upcoming.svg</code></td></tr>
+      <tr><td>Scoreboard preview (marketing)</td><td><code>public/illustrations/scoreboard-preview.png</code></td></tr>
+      <tr><td>Offline warning icon (inline)</td><td><code>public/illustrations/offline-indicator.svg</code></td></tr>
+      <tr><td>Dynamic match OG via next/og</td><td><code>src/app/api/og/match/[id]/route.tsx</code></td></tr>
+      <tr><td>PWA screenshot — dashboard mobile</td><td><code>public/screenshots/dashboard-mobile.png</code></td></tr>
+      <tr><td>PWA screenshot — control panel</td><td><code>public/screenshots/control-panel.png</code></td></tr>
+      <tr><td>Feature — control panel</td><td><code>public/marketing/feature-control.png</code></td></tr>
+      <tr><td>Feature — offline</td><td><code>public/marketing/feature-offline.png</code></td></tr>
+      <tr><td>Feature — share / QR</td><td><code>public/marketing/feature-share.png</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>⚪ P4 — Post-launch polish</h3>
+  <table>
+    <thead><tr><th>Asset</th><th>File path</th></tr></thead>
+    <tbody>
+      <tr><td>Logo monogram</td><td><code>public/logo-monogram.svg</code></td></tr>
+      <tr><td>Logo mono (white/black)</td><td><code>public/logo-mono-white.svg</code> / <code>logo-mono-black.svg</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- EXPORT GUIDELINES -->
+<div class="section" id="export">
+  <h2>Export Guidelines</h2>
+
+  <div class="two-col">
+    <div>
+      <h3>SVG requirements</h3>
+      <ul>
+        <li>Flatten all text to paths — no font embedding</li>
+        <li>Remove invisible layers and artboard backgrounds</li>
+        <li>Optimize with SVGO — target &lt;8kb for illustrations, &lt;2kb for icons</li>
+        <li>Use <code>viewBox</code> not fixed <code>width</code>/<code>height</code> on root</li>
+        <li>Dark-mode adaptable: use <code>currentColor</code> for strokes/fills where possible</li>
+        <li>Animated SVGs: use CSS <code>@keyframes</code>, not SMIL (better browser support)</li>
+      </ul>
+    </div>
+    <div>
+      <h3>PNG requirements</h3>
+      <ul>
+        <li>Export at <strong>@2x resolution</strong> minimum (display × 2)</li>
+        <li>Compress with <strong>TinyPNG</strong> or <strong>Squoosh</strong> — &lt;200kb for marketing images</li>
+        <li>PWA icons: PNG-24 (no transparency for maskable, transparent OK for others)</li>
+        <li>OG images: JPEG 90% quality acceptable to stay under 300kb</li>
+        <li>Screenshots: PNG — exact pixel dimensions, dark theme active</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Delivery format</h3>
+      <ul>
+        <li>Figma file with all assets on labelled frames, named by file path</li>
+        <li>Zip: <code>/svg/</code>, <code>/png/</code>, <code>/ico/</code> folders matching <code>public/</code> structure</li>
+        <li>File naming: lowercase, hyphens, no spaces (<code>icon-192.png</code>)</li>
+        <li>All assets placed directly into the <code>public/</code> directory tree</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Testing checklist</h3>
+      <ul>
+        <li>Favicons: verify in Chrome, Firefox, Safari, and Edge tabs</li>
+        <li>PWA icons: install app on Android — check home screen icon shape</li>
+        <li>Apple touch: add to iOS home screen — check clarity at actual size</li>
+        <li>OG images: test with <strong>opengraph.xyz</strong> or Meta's Sharing Debugger</li>
+        <li>Empty states: trigger each state in the app to verify sizing and alignment</li>
+        <li>Dark mode: verify all SVGs look correct in both light and dark OS themes</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="note" style="margin-top:20px">
+    <strong>Estimated design effort:</strong> P1 assets (~2–3 hours for logo + icons + favicon pack using RealFaviconGenerator + 2 empty states). P2 assets (~1 day for remaining illustrations + OG image + hero screenshot). P3 assets (~1 day). The logo and favicon pack are the true blockers — a sports-simple icon (football + signal/broadcast concept) in the violet gradient should take an experienced designer 1–2 hours to finalise.
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+  const links = document.querySelectorAll('.nav-link');
+  const sections = document.querySelectorAll('[id]');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const a = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-15% 0px -75% 0px' });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

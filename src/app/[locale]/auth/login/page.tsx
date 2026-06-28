@@ -41,6 +41,11 @@ export default function LoginPage() {
   const onSubmit = async (values: FormValues) => {
     try {
       const cred = await signInWithEmailAndPassword(auth, values.email, values.password);
+      const idToken = await cred.user.getIdToken();
+      await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${idToken}` },
+      });
       const userDoc = await getUserDoc(cred.user.uid);
       setUser(userDoc);
       router.push(`/${locale}/dashboard`);

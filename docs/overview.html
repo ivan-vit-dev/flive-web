@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FLive — Product Overview</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #09090b;
+      --surface:   #18181b;
+      --surface2:  #27272a;
+      --border:    #3f3f46;
+      --violet:    #7c3aed;
+      --violet-dim:#4c1d95;
+      --violet-fg: #a78bfa;
+      --amber:     #d97706;
+      --amber-fg:  #fbbf24;
+      --text:      #f4f4f5;
+      --muted:     #a1a1aa;
+      --dim:       #71717a;
+      --green:     #4ade80;
+      --red:       #f87171;
+      --radius:    10px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    a { color: var(--violet-fg); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .container { max-width: 1000px; margin: 0 auto; padding: 0 24px; }
+
+    /* Hero */
+    .hero {
+      background: linear-gradient(160deg, #1e0a3c 0%, #09090b 60%);
+      border-bottom: 1px solid var(--border);
+      padding: 72px 0 56px;
+      text-align: center;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--violet-dim); color: var(--violet-fg);
+      border: 1px solid var(--violet);
+      border-radius: 999px; padding: 3px 12px; font-size: 12px;
+      font-weight: 600; letter-spacing: .5px; margin-bottom: 20px;
+      text-transform: uppercase;
+    }
+    .live-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--red); display: inline-block;
+      animation: pulse 1.5s cubic-bezier(0.4,0,0.6,1) infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    .hero-title {
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      font-weight: 800; letter-spacing: -1px; line-height: 1.1;
+    }
+    .hero-title span { color: var(--violet-fg); }
+    .hero-sub {
+      margin-top: 16px; font-size: 1.1rem; color: var(--muted);
+      max-width: 580px; margin-left: auto; margin-right: auto;
+    }
+    .hero-tags {
+      display: flex; flex-wrap: wrap; justify-content: center;
+      gap: 8px; margin-top: 28px;
+    }
+    .tag {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 999px; padding: 4px 12px;
+      font-size: 12px; color: var(--muted); font-weight: 500;
+    }
+    .tag-live {
+      background: color-mix(in srgb, #f87171 12%, transparent);
+      border-color: #f87171; color: #f87171;
+    }
+
+    /* Sections */
+    section { padding: 56px 0; border-bottom: 1px solid var(--border); }
+    section:last-of-type { border-bottom: none; }
+    .section-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--violet); margin-bottom: 8px;
+    }
+    h2 { font-size: 1.8rem; font-weight: 700; letter-spacing: -.5px; margin-bottom: 6px; }
+    .lead { color: var(--muted); margin-bottom: 32px; font-size: 1rem; }
+
+    /* About grid */
+    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 640px) { .about-grid { grid-template-columns: 1fr; } }
+    .about-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px 24px;
+    }
+    .about-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 8px; color: var(--violet-fg); }
+    .about-card p { font-size: .9rem; color: var(--muted); }
+
+    /* Roles */
+    .role-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 640px) { .role-cards { grid-template-columns: 1fr; } }
+    .role-card {
+      border-radius: var(--radius); padding: 22px 24px;
+      position: relative; overflow: hidden;
+    }
+    .role-card.reporter {
+      background: linear-gradient(135deg, #1e0a3c 0%, #27272a 100%);
+      border: 1px solid var(--violet-dim);
+    }
+    .role-card.viewer {
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+    .role-icon { font-size: 2rem; margin-bottom: 12px; display: block; }
+    .role-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; }
+    .role-card.reporter h3 { color: var(--violet-fg); }
+    .role-card.viewer h3 { color: var(--amber-fg); }
+    .role-card p { font-size: .88rem; color: var(--muted); margin-bottom: 12px; }
+    .role-list { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+    .role-list li { font-size: .82rem; color: var(--muted); display: flex; align-items: baseline; gap: 8px; }
+    .role-list li::before { content: "→"; color: var(--violet-fg); flex-shrink: 0; }
+    .role-card.viewer .role-list li::before { color: var(--amber-fg); }
+
+    /* Match flow */
+    .flow-steps { display: flex; flex-direction: column; gap: 0; }
+    .flow-step {
+      display: flex; gap: 16px; align-items: flex-start;
+      padding: 18px 0;
+      border-bottom: 1px solid var(--surface2);
+    }
+    .flow-step:last-child { border-bottom: none; }
+    .step-num {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--violet-dim), var(--violet));
+      color: #fff; font-weight: 800; font-size: .82rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 2px;
+    }
+    .flow-step h4 { font-size: .95rem; font-weight: 700; margin-bottom: 4px; }
+    .flow-step p { font-size: .85rem; color: var(--muted); }
+
+    /* Features */
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+    .feature-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 22px 24px;
+      transition: border-color .2s;
+    }
+    .feature-card:hover { border-color: var(--violet-dim); }
+    .feat-icon { font-size: 1.6rem; margin-bottom: 10px; display: block; }
+    .feature-card h3 { font-size: .95rem; font-weight: 700; margin-bottom: 6px; }
+    .feature-card p { font-size: .85rem; color: var(--muted); }
+    .feature-card.highlight { border-color: var(--violet-dim); background: linear-gradient(135deg, #1e0a3c 0%, #18181b 100%); }
+
+    /* Tech Stack */
+    .stack-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 640px) { .stack-cols { grid-template-columns: 1fr; } }
+    .stack-group { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .stack-group-title {
+      background: var(--surface2); padding: 10px 16px;
+      font-size: 12px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .stack-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 9px 16px; border-top: 1px solid var(--surface2);
+      font-size: .85rem;
+    }
+    .stack-row:first-of-type { border-top: none; }
+    .stack-layer { color: var(--muted); }
+    .stack-tech { font-weight: 600; color: var(--text); }
+
+    /* Architecture */
+    .arch-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+    .arch-list li {
+      display: flex; gap: 12px; align-items: flex-start;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 18px;
+    }
+    .arch-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--violet); flex-shrink: 0; margin-top: 6px; }
+    .arch-list strong { display: block; font-size: .9rem; margin-bottom: 3px; }
+    .arch-list span { font-size: .83rem; color: var(--muted); }
+
+    /* Status bar */
+    .status-bar {
+      background: var(--surface); border-top: 1px solid var(--border);
+      padding: 14px 0; text-align: center; font-size: .82rem; color: var(--muted);
+    }
+    .status-bar strong { color: var(--violet-fg); }
+
+    code {
+      font-family: monospace; font-size: .8rem;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 4px; padding: 1px 5px; color: var(--violet-fg);
+    }
+  </style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="container">
+    <div class="hero-badge"><span class="live-dot"></span> Live Football Broadcaster</div>
+    <h1 class="hero-title">F<span>Live</span></h1>
+    <p class="hero-sub">
+      A live match broadcaster for amateur and youth football clubs — no TV budget, no production crew.
+      One reporter, one phone, and every fan follows along in real time.
+    </p>
+    <div class="hero-tags">
+      <span class="tag tag-live">Real-Time</span>
+      <span class="tag">Next.js 16</span>
+      <span class="tag">TypeScript 5</span>
+      <span class="tag">Firebase</span>
+      <span class="tag">next-firebase-auth-edge</span>
+      <span class="tag">Czech &amp; English</span>
+      <span class="tag">PWA</span>
+      <span class="tag">Offline-First</span>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="container">
+    <div class="section-label">About</div>
+    <h2>What is FLive?</h2>
+    <p class="lead">FLive turns any club volunteer into a live match commentator. A reporter logs events in a browser dashboard; fans watch an auto-updating public feed on any device — no app install required.</p>
+
+    <div class="about-grid">
+      <div class="about-card">
+        <h3>Target audience</h3>
+        <p>Czech and Slovak amateur and youth football clubs that can't afford a TV broadcast crew. Parents, fans, and club members who can't attend every away match and want a live feed.</p>
+      </div>
+      <div class="about-card">
+        <h3>Core concept</h3>
+        <p>A reporter logs structured match events (goals, cards, substitutions, phases) from a dashboard. Viewers watch a real-time event feed at a shareable public URL. No accounts needed to watch.</p>
+      </div>
+      <div class="about-card">
+        <h3>Offline resilience</h3>
+        <p>If the reporter loses mobile signal, events queue locally in localStorage. When connectivity returns, everything syncs automatically — the broadcast never misses a goal.</p>
+      </div>
+      <div class="about-card">
+        <h3>Club-ready</h3>
+        <p>Reporters pre-configure their club's teams, players, pitches, and competitions in Settings. A saved team auto-fills the match creation form in seconds — ready for kick-off.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ROLES -->
+<section id="roles">
+  <div class="container">
+    <div class="section-label">User Roles</div>
+    <h2>Two user types, zero friction</h2>
+    <p class="lead">Reporters need an account. Viewers need nothing — just a link.</p>
+
+    <div class="role-cards">
+      <div class="role-card reporter">
+        <span class="role-icon">📋</span>
+        <h3>Reporter</h3>
+        <p>An authenticated club volunteer who manages and broadcasts matches.</p>
+        <ul class="role-list">
+          <li>Create and configure matches (teams, players, event types, parts)</li>
+          <li>Start / pause / end match phases from the live control panel</li>
+          <li>Log all events in real time: goals, cards, subs, corners, VAR…</li>
+          <li>Keyboard shortcuts for the most common events</li>
+          <li>Copy a broadcast link and QR code to share with fans</li>
+          <li>Manage saved teams, players, pitches and competitions in Settings</li>
+          <li>Works offline — events queue and sync on reconnect</li>
+        </ul>
+      </div>
+
+      <div class="role-card viewer">
+        <span class="role-icon">👁️</span>
+        <h3>Viewer</h3>
+        <p>An anonymous fan or parent who watches a live or finished match.</p>
+        <ul class="role-list">
+          <li>Browse all live and upcoming public matches on the home page</li>
+          <li>Watch a live event feed that auto-updates in real time</li>
+          <li>See the scoreboard, live clock, current match phase</li>
+          <li>Opt in to browser push notifications for goals and red cards</li>
+          <li>Share the broadcast link or QR code with others</li>
+          <li>Read the full event timeline of finished matches</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MATCH FLOW -->
+<section id="flow">
+  <div class="container">
+    <div class="section-label">Match Lifecycle</div>
+    <h2>How a broadcast works</h2>
+    <p class="lead">From creation to the final whistle — every step in order.</p>
+
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="step-num">1</div>
+        <div>
+          <h4>Create the match</h4>
+          <p>Reporter fills the match form: home/away teams, venue, competition, scheduled time, number of parts, part duration, player list, and which event types to enable. A team picker auto-fills all of this from saved club data.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">2</div>
+        <div>
+          <h4>Share the broadcast link</h4>
+          <p>The match instantly appears on the public home page. Reporter copies the broadcast URL or QR code and shares it with fans. Viewers can follow along even before kick-off.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">3</div>
+        <div>
+          <h4>Start the match</h4>
+          <p>Reporter opens the dashboard control panel and clicks "Start match". A <code>match_start</code> structural event is logged, status changes to <code>live_first</code>, and the live clock begins. Viewers' feeds update immediately.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">4</div>
+        <div>
+          <h4>Log events in real time</h4>
+          <p>Reporter taps event buttons (or uses keyboard shortcuts: <strong>G</strong> = goal, <strong>Y</strong> = yellow card…). Complex events open an EventForm dialog for player name, assist, added time, description. Simple events fire immediately.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">5</div>
+        <div>
+          <h4>Progress through phases</h4>
+          <p>Control panel buttons advance the match: half-time → second half → full-time. Optional extra time and penalty shootout phases are one-click transitions. Each logs a structural TIMELINE_EVENT to mark the phase boundary permanently.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">6</div>
+        <div>
+          <h4>Finish and summarise</h4>
+          <p>Reporter clicks "Finish match". <code>writeMatchSummary()</code> compiles scorers, cards, half-time score, extra-time flag, and shootout result directly onto the match document. The events subcollection is never deleted — it remains the source of truth.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="container">
+    <div class="section-label">Features</div>
+    <h2>Main capabilities</h2>
+    <p class="lead">Built specifically for the amateur match-day workflow — field-tested constraints, no bloat.</p>
+
+    <div class="features-grid">
+      <div class="feature-card highlight">
+        <span class="feat-icon">⚡</span>
+        <h3>Real-Time Event Feed</h3>
+        <p>Viewers see events the moment the reporter logs them — <code>onSnapshot</code> listener on the events subcollection, scoped to only the one component that needs it. Automatically switches to one-time fetch for finished matches.</p>
+      </div>
+
+      <div class="feature-card highlight">
+        <span class="feat-icon">📡</span>
+        <h3>Live Match Clock</h3>
+        <p>Reporter's clock advances client-side every second. Every 30 s it syncs to Firestore via <code>currentMinuteAt</code> timestamp. Viewers compute elapsed time client-side — all fans see the exact same clock without polling.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feat-icon">🗂️</span>
+        <h3>Configurable Event Types</h3>
+        <p>30 event types (8 structural + 22 gameplay). Reporters choose which gameplay events to enable per match — a youth U10 game won't need VAR reviews. Structural events (kick-off, half-time, etc.) are always present.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feat-icon">📴</span>
+        <h3>Offline Queue</h3>
+        <p>Events queue in <code>localStorage</code> under <code>flive_session</code> when the reporter's signal drops. Reconnect → auto-sync. The clock position is also cached so the timer survives a page refresh.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feat-icon">⚽</span>
+        <h3>Score Auto-Management</h3>
+        <p>Goals, own-goals, penalty scores, and penalty kicks all auto-increment/decrement the match score via Firestore <code>increment()</code> in the same write as the event — atomic, no double-counting.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feat-icon">🔫</span>
+        <h3>Penalty Shootout</h3>
+        <p>Full shootout tracking per kick: scored / missed / saved. Home and away shootout scores are maintained separately on the match document. Works seamlessly after extra time.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feat-icon">⌨️</span>
+        <h3>Keyboard Shortcuts</h3>
+        <p>Common events triggered from the keyboard — <strong>G</strong>=goal, <strong>O</strong>=own goal, <strong>Y</strong>=yellow card, <strong>R</strong>=red card and more. Designed for reporters holding a phone with one hand and keeping their eyes on the pitch.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feat-icon">📱</span>
+        <h3>PWA — Install on Any Device</h3>
+        <p>Service worker caches static assets for offline resilience. <code>manifest.json</code> enables "Add to Home Screen" on Android and iOS. Reporters can launch the dashboard without opening a browser.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feat-icon">🔔</span>
+        <h3>Push Notifications for Viewers</h3>
+        <p>Viewers can opt in to browser push notifications. Goals and red cards fire a notification in the background — fans at work still know what's happening.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feat-icon">🔗</span>
+        <h3>Shareable Public Feed</h3>
+        <p>Every match has a public URL (no login needed to view) and a QR code. Share it in a club WhatsApp group before kick-off and the feed is live for everyone in seconds.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feat-icon">🏆</span>
+        <h3>Extra Time &amp; Multi-Part Matches</h3>
+        <p>Supports 1–4 configurable parts with custom durations. Extra time is a seamless continuation past the final whistle, not a separate phase. Matches with up to 4 parts work for indoor or festival football.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feat-icon">📊</span>
+        <h3>Post-Match Summary</h3>
+        <p>On finish, a compact <code>summary</code> object is written directly onto the match document — scorers, cards, half-time score, extra time flag, shootout result — so viewers can get the quick recap without querying the full events subcollection.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section id="stack">
+  <div class="container">
+    <div class="section-label">Tech Stack</div>
+    <h2>Technologies used</h2>
+    <p class="lead">Lean stack — only what the match-day workflow actually needs.</p>
+
+    <div class="stack-cols">
+      <div>
+        <div class="stack-group">
+          <div class="stack-group-title">Frontend</div>
+          <div class="stack-row"><span class="stack-layer">Framework</span><span class="stack-tech">Next.js 16 (App Router)</span></div>
+          <div class="stack-row"><span class="stack-layer">Language</span><span class="stack-tech">TypeScript 5 (strict)</span></div>
+          <div class="stack-row"><span class="stack-layer">UI Primitives</span><span class="stack-tech">@base-ui/react + Radix UI</span></div>
+          <div class="stack-row"><span class="stack-layer">Styling</span><span class="stack-tech">Tailwind CSS v3 (oklch tokens)</span></div>
+          <div class="stack-row"><span class="stack-layer">State / Auth</span><span class="stack-tech">React Context (no Zustand)</span></div>
+          <div class="stack-row"><span class="stack-layer">Forms</span><span class="stack-tech">react-hook-form + Zod</span></div>
+          <div class="stack-row"><span class="stack-layer">Icons</span><span class="stack-tech">lucide-react</span></div>
+          <div class="stack-row"><span class="stack-layer">Toasts</span><span class="stack-tech">react-hot-toast</span></div>
+          <div class="stack-row"><span class="stack-layer">QR Codes</span><span class="stack-tech">qrcode.react</span></div>
+          <div class="stack-row"><span class="stack-layer">Theming</span><span class="stack-tech">next-themes (dark / light)</span></div>
+          <div class="stack-row"><span class="stack-layer">i18n</span><span class="stack-tech">next-intl 3.26 (cs + en)</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="stack-group">
+          <div class="stack-group-title">Backend &amp; Infrastructure</div>
+          <div class="stack-row"><span class="stack-layer">Auth (server)</span><span class="stack-tech">next-firebase-auth-edge 1.12</span></div>
+          <div class="stack-row"><span class="stack-layer">Auth (client)</span><span class="stack-tech">Firebase Auth</span></div>
+          <div class="stack-row"><span class="stack-layer">Database</span><span class="stack-tech">Cloud Firestore</span></div>
+          <div class="stack-row"><span class="stack-layer">Real-Time</span><span class="stack-tech">Firestore onSnapshot (events only)</span></div>
+          <div class="stack-row"><span class="stack-layer">PWA</span><span class="stack-tech">Service Worker + manifest.json</span></div>
+          <div class="stack-row"><span class="stack-layer">Middleware</span><span class="stack-tech">src/proxy.ts (Next.js 16)</span></div>
+        </div>
+
+        <div class="stack-group" style="margin-top:16px">
+          <div class="stack-group-title">Color System</div>
+          <div class="stack-row"><span class="stack-layer">Color space</span><span class="stack-tech">oklch() CSS custom properties</span></div>
+          <div class="stack-row"><span class="stack-layer">Primary</span><span class="stack-tech">Violet hue 285 (oklch 0.50)</span></div>
+          <div class="stack-row"><span class="stack-layer">Live accent</span><span class="stack-tech">Amber hue 72 (live clocks, scores)</span></div>
+          <div class="stack-row"><span class="stack-layer">Opacity</span><span class="stack-tech">color-mix(in oklch, …) — not /XX</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section id="architecture">
+  <div class="container">
+    <div class="section-label">Architecture</div>
+    <h2>Key decisions</h2>
+    <p class="lead">Constraints that every developer must know before touching the codebase.</p>
+
+    <ul class="arch-list">
+      <li>
+        <div class="arch-dot"></div>
+        <div>
+          <strong>Two-layer auth — server cookie + client context</strong>
+          <span>Server layer: <code>next-firebase-auth-edge</code> validates an HTTP-only session cookie on every request via <code>src/proxy.ts</code>. Client layer: <code>AuthProvider</code> wraps <code>onAuthStateChanged</code>, exposes <code>useAuth()</code>. Login POSTs idToken to <code>/api/auth/login</code>; logout calls <code>/api/auth/logout</code> before Firebase signOut.</span>
+        </div>
+      </li>
+      <li>
+        <div class="arch-dot"></div>
+        <div>
+          <strong>Single real-time listener — EventFeed only</strong>
+          <span><code>EventFeed.tsx</code> is the only component that may use <code>onSnapshot</code>. All other data loading is one-time <code>getDocs</code>/<code>getDoc</code> on mount. For finished matches, EventFeed automatically switches to a one-time fetch. Never add <code>onSnapshot</code> elsewhere.</span>
+        </div>
+      </li>
+      <li>
+        <div class="arch-dot"></div>
+        <div>
+          <strong>All Firestore access via firebaseServices.ts</strong>
+          <span>Components, hooks, and contexts never import <code>db</code> directly. Every read and write goes through <code>src/lib/firebaseServices.ts</code>. This keeps data logic testable and auditable in one place.</span>
+        </div>
+      </li>
+      <li>
+        <div class="arch-dot"></div>
+        <div>
+          <strong>Offline resilience via localStorage session queue</strong>
+          <span>The <code>flive_session</code> key stores <code>PendingEvent[]</code> when the reporter loses signal. Helpers in <code>src/lib/utils.ts</code>: <code>getBroadcastSession</code>, <code>setBroadcastSession</code>, <code>clearBroadcastSession</code>, <code>saveMatchClock</code>. Never use Firebase's offline persistence — the session queue is the strategy.</span>
+        </div>
+      </li>
+      <li>
+        <div class="arch-dot"></div>
+        <div>
+          <strong>Events subcollection is never deleted</strong>
+          <span>The <code>matches/{matchId}/events/{eventId}</code> subcollection is the permanent source of truth. <code>writeMatchSummary()</code> adds a compact <code>summary</code> object to the match doc for fast viewer access — but the events remain. Never delete them.</span>
+        </div>
+      </li>
+      <li>
+        <div class="arch-dot"></div>
+        <div>
+          <strong>Next.js 16 middleware file is proxy.ts</strong>
+          <span>Next.js 16 renamed the middleware entry from <code>middleware.ts</code> to <code>proxy.ts</code>. The exported function must be named <code>proxy</code>. Both next-intl locale routing and auth session guard are chained inside this single file. Do not create a <code>middleware.ts</code>.</span>
+        </div>
+      </li>
+      <li>
+        <div class="arch-dot"></div>
+        <div>
+          <strong>Tailwind oklch tokens — opacity modifiers disabled</strong>
+          <span>CSS custom properties use full <code>oklch(...)</code> values, so Tailwind's opacity modifier syntax (<code>bg-primary/50</code>) produces transparent results. Use <code>color-mix(in oklch, var(--token) 50%, transparent)</code> in raw CSS instead, or choose a different token.</span>
+        </div>
+      </li>
+      <li>
+        <div class="arch-dot"></div>
+        <div>
+          <strong>No Zustand — auth is React Context only</strong>
+          <span>Auth state lives in <code>AuthProvider</code> via <code>useState</code> internally, exposed via <code>useAuth()</code>. After registration, call <code>setUser(userDoc)</code> before <code>router.push</code> to avoid the race where the middleware sees a valid cookie but the context hasn't populated yet.</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <div class="container">
+    <strong>FLive</strong> &nbsp;·&nbsp;
+    Next.js 16 · Firebase · TypeScript 5 &nbsp;·&nbsp;
+    2 user roles · 30 event types · offline-first &nbsp;·&nbsp;
+    Czech primary · English secondary
+  </div>
+</div>
+
+</body>
+</html>

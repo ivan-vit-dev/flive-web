@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FLive — Developer Reference</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #09090b;
+      --surface:   #18181b;
+      --surface2:  #27272a;
+      --border:    #3f3f46;
+      --violet:    #7c3aed;
+      --violet-dim:#4c1d95;
+      --violet-fg: #a78bfa;
+      --amber:     #d97706;
+      --amber-fg:  #fbbf24;
+      --text:      #f4f4f5;
+      --muted:     #a1a1aa;
+      --dim:       #71717a;
+      --blue:      #60a5fa;
+      --green:     #4ade80;
+      --orange:    #fb923c;
+      --red:       #f87171;
+      --sidebar-w: 260px;
+      --radius:    8px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg); color: var(--text);
+      line-height: 1.6; font-size: 14px;
+    }
+
+    .layout { display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--surface); border-right: 1px solid var(--border);
+      position: fixed; top: 0; left: 0;
+      height: 100vh; overflow-y: auto; padding: 0 0 32px; flex-shrink: 0;
+    }
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    .sidebar-logo { padding: 18px 16px 14px; border-bottom: 1px solid var(--border); font-weight: 800; font-size: .95rem; }
+    .sidebar-logo span { color: var(--violet-fg); }
+
+    .nav-group { padding: 14px 0 4px; }
+    .nav-group-label { padding: 0 16px 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--dim); }
+    .nav-link { display: block; padding: 6px 16px; font-size: .82rem; color: var(--muted); text-decoration: none; transition: color .15s, background .15s; }
+    .nav-link:hover { color: var(--text); background: var(--surface2); }
+    .nav-link.active { color: var(--violet-fg); background: color-mix(in srgb, var(--violet) 10%, transparent); }
+
+    /* Main */
+    .main { margin-left: var(--sidebar-w); flex: 1; padding: 0 0 80px; }
+
+    /* Page header */
+    .page-header { background: linear-gradient(160deg, #1e0a3c 0%, #09090b 80%); border-bottom: 1px solid var(--border); padding: 40px 48px 32px; }
+    .page-header .label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--violet); margin-bottom: 8px; }
+    .page-header h1 { font-size: 2rem; font-weight: 800; letter-spacing: -.5px; }
+    .page-header p { color: var(--muted); margin-top: 8px; max-width: 600px; font-size: .9rem; }
+
+    /* Section */
+    .section { padding: 40px 48px; border-bottom: 1px solid var(--border); }
+    .section:last-of-type { border-bottom: none; }
+    .section > h2 { font-size: 1.35rem; font-weight: 700; letter-spacing: -.3px; margin-bottom: 4px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+    .section > .section-desc { color: var(--muted); font-size: .85rem; margin-bottom: 20px; margin-top: 6px; }
+
+    h3 { font-size: 1rem; font-weight: 700; margin: 24px 0 8px; color: var(--violet-fg); }
+    h3:first-child { margin-top: 0; }
+    h4 { font-size: .88rem; font-weight: 600; margin: 16px 0 6px; color: var(--text); }
+    p { font-size: .88rem; color: var(--muted); margin: 6px 0; }
+
+    /* Code */
+    code { font-family: "Cascadia Code","Fira Code","Courier New",monospace; font-size: .8rem; background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; color: var(--violet-fg); }
+    pre { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; overflow-x: auto; font-family: "Cascadia Code","Fira Code",monospace; font-size: .78rem; line-height: 1.7; color: var(--text); margin: 10px 0; }
+    pre .c { color: var(--dim); }
+    pre .k { color: var(--blue); }
+    pre .s { color: var(--green); }
+    pre .p { color: var(--violet-fg); }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+    th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--surface2); vertical-align: top; }
+    thead th { background: var(--surface2); color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+    tbody tr:hover { background: var(--surface); }
+    td { font-size: .83rem; }
+    td:first-child { white-space: nowrap; }
+    td code { font-size: .75rem; }
+
+    /* Cards / boxes */
+    .box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 18px; margin: 10px 0; }
+    .box-title { font-weight: 700; font-size: .88rem; margin-bottom: 6px; color: var(--text); }
+    .box p { margin: 0; }
+
+    /* Page entries */
+    .page-entry { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin: 14px 0; overflow: hidden; }
+    .page-entry-header { background: var(--surface2); padding: 10px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .page-entry-route { font-family: monospace; font-size: .82rem; color: var(--blue); font-weight: 600; }
+    .page-entry-file { font-family: monospace; font-size: .75rem; color: var(--dim); margin-left: auto; }
+    .page-entry-body { padding: 12px 16px; }
+    .page-entry-body p { margin: 4px 0; }
+
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+    .tag-public { background: color-mix(in srgb, var(--green) 15%, transparent); color: var(--green); }
+    .tag-auth   { background: color-mix(in srgb, var(--violet) 15%, transparent); color: var(--violet-fg); }
+    .tag-live   { background: color-mix(in srgb, var(--red) 15%, transparent); color: var(--red); }
+
+    /* Pill list */
+    .pill-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+    .pill { background: var(--surface2); border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; font-size: .75rem; color: var(--muted); font-family: monospace; }
+
+    /* File tree */
+    .file-tree { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; font-family: "Cascadia Code","Fira Code",monospace; font-size: .78rem; line-height: 2; color: var(--muted); }
+    .file-tree .dir  { color: var(--blue); }
+    .file-tree .file { color: var(--text); }
+    .file-tree .note { color: var(--dim); font-style: italic; }
+
+    /* Two-col */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* Highlight row */
+    .hl { border-left: 3px solid var(--violet); padding-left: 10px; margin: 8px 0; }
+    .hl strong { color: var(--text); font-size: .88rem; display: block; }
+    .hl span { color: var(--muted); font-size: .82rem; }
+
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .main { margin-left: 0; }
+      .section, .page-header { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-logo">F<span>Live</span><br><small style="color:var(--dim);font-weight:400;font-size:.7rem">Developer Reference</small></div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Project</div>
+    <a class="nav-link" href="#architecture">Architecture</a>
+    <a class="nav-link" href="#structure">File Structure</a>
+    <a class="nav-link" href="#routing">Route Map</a>
+    <a class="nav-link" href="#firestore">Firestore Schema</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Pages</div>
+    <a class="nav-link" href="#pg-public">Public Pages</a>
+    <a class="nav-link" href="#pg-auth">Auth Pages</a>
+    <a class="nav-link" href="#pg-dashboard">Dashboard</a>
+    <a class="nav-link" href="#pg-broadcast">Broadcast &amp; Viewer</a>
+    <a class="nav-link" href="#pg-settings">Settings</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Components</div>
+    <a class="nav-link" href="#comp-layout">Layout</a>
+    <a class="nav-link" href="#comp-match">Match</a>
+    <a class="nav-link" href="#comp-forms">Forms</a>
+    <a class="nav-link" href="#comp-settings">Settings</a>
+    <a class="nav-link" href="#comp-ui">UI Primitives</a>
+    <a class="nav-link" href="#comp-providers">Providers</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Business Logic</div>
+    <a class="nav-link" href="#lib-firebase">Firebase Init</a>
+    <a class="nav-link" href="#lib-services">Firestore Services</a>
+    <a class="nav-link" href="#lib-utils">Utils &amp; Session</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Infrastructure</div>
+    <a class="nav-link" href="#auth-flow">Auth Flow</a>
+    <a class="nav-link" href="#realtime">Real-Time Pattern</a>
+    <a class="nav-link" href="#offline">Offline Resilience</a>
+    <a class="nav-link" href="#types">Types Reference</a>
+    <a class="nav-link" href="#events">Event Types</a>
+    <a class="nav-link" href="#i18n">i18n</a>
+    <a class="nav-link" href="#design">Design Tokens</a>
+    <a class="nav-link" href="#patterns">Patterns &amp; Gotchas</a>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+<div class="page-header">
+  <div class="label">Developer Reference</div>
+  <h1>FLive</h1>
+  <p>Complete page-by-page, component-by-component, file-by-file reference for developers working on this codebase.</p>
+</div>
+
+<!-- ARCHITECTURE -->
+<div class="section" id="architecture">
+  <h2>Architecture Overview</h2>
+  <p class="section-desc">Read this before touching the code. These constraints are non-negotiable.</p>
+
+  <div class="two-col">
+    <div class="box">
+      <div class="box-title">Auth — two layers</div>
+      <p><strong>Server:</strong> <code>src/proxy.ts</code> validates HTTP-only <code>session</code> cookie via <code>next-firebase-auth-edge</code>. Redirects unauthenticated requests to login. <strong>Client:</strong> <code>AuthProvider</code> context wraps <code>onAuthStateChanged</code> → Firestore <code>users/{uid}</code> → <code>useAuth()</code>.</p>
+    </div>
+    <div class="box">
+      <div class="box-title">Firestore access — one file</div>
+      <p>All reads and writes go through <code>src/lib/firebaseServices.ts</code>. Components never import <code>db</code> directly. Every document has <code>createdAt</code>, <code>updatedAt</code> (Timestamps) and <code>reporterId</code>/<code>userId</code> ownership fields.</p>
+    </div>
+    <div class="box">
+      <div class="box-title">Real-time — one listener</div>
+      <p><code>EventFeed.tsx</code> is the only component that uses <code>onSnapshot</code>. All other data loading is one-time <code>getDocs</code>/<code>getDoc</code> on mount. EventFeed auto-switches to a one-time fetch when a match is finished. Do not add <code>onSnapshot</code> calls elsewhere.</p>
+    </div>
+    <div class="box">
+      <div class="box-title">Offline — localStorage queue</div>
+      <p>The <code>flive_session</code> localStorage key holds <code>PendingEvent[]</code> when signal drops. Helpers: <code>getBroadcastSession</code>, <code>setBroadcastSession</code>, <code>clearBroadcastSession</code>, <code>saveMatchClock</code>, <code>clearMatchClock</code> — all in <code>src/lib/utils.ts</code>. Never use Firebase offline persistence.</p>
+    </div>
+    <div class="box">
+      <div class="box-title">Events subcollection — never delete</div>
+      <p><code>matches/{matchId}/events/{eventId}</code> is the permanent source of truth. <code>writeMatchSummary()</code> writes a compact <code>summary</code> field to the match doc for fast viewer access — but the events remain forever.</p>
+    </div>
+    <div class="box">
+      <div class="box-title">No Zustand — React Context only</div>
+      <p>Auth state lives in <code>AuthProvider</code> via <code>useState</code>. No Zustand anywhere. The <code>useAuth()</code> hook returns <code>{ user, loading, setUser, logout }</code>. After registration, call <code>setUser(userDoc)</code> before <code>router.push</code> to prevent a race with middleware cookie validation.</p>
+    </div>
+  </div>
+</div>
+
+<!-- FILE STRUCTURE -->
+<div class="section" id="structure">
+  <h2>File Structure</h2>
+  <p class="section-desc">Every file has one responsibility. Do not import across layers.</p>
+
+  <div class="file-tree">
+<span class="dir">src/</span><br>
+├── <span class="dir">app/</span>                   <span class="note"># Next.js App Router</span><br>
+│   ├── layout.tsx              <span class="note"># Root &lt;html&gt;&lt;body&gt; shell</span><br>
+│   └── <span class="dir">[locale]/</span><br>
+│       ├── layout.tsx          <span class="note"># next-intl, AuthProvider, ThemeProvider, fonts, metadata</span><br>
+│       ├── page.tsx            <span class="note"># Public home — live/upcoming/finished match lists + search</span><br>
+│       ├── <span class="dir">auth/</span><br>
+│       │   ├── layout.tsx      <span class="note"># Thin passthrough — server middleware handles redirects</span><br>
+│       │   ├── <span class="dir">login/</span>page.tsx    <span class="note"># Email + password login</span><br>
+│       │   └── <span class="dir">register/</span>page.tsx <span class="note"># Name + email + password with strength indicator</span><br>
+│       ├── <span class="dir">match/[id]/</span>page.tsx  <span class="note"># Public viewer page for finished matches</span><br>
+│       ├── <span class="dir">broadcast/[id]/</span>page.tsx <span class="note"># Public live broadcast viewer</span><br>
+│       └── <span class="dir">dashboard/</span><br>
+│           ├── layout.tsx      <span class="note"># Dashboard shell with AppShell</span><br>
+│           ├── page.tsx        <span class="note"># Reporter dashboard — live/upcoming/finished tabs</span><br>
+│           ├── <span class="dir">match/new/</span>page.tsx   <span class="note"># Create match form</span><br>
+│           ├── <span class="dir">match/[id]/</span>page.tsx  <span class="note"># Match control — scoreboard + LiveControlPanel</span><br>
+│           ├── <span class="dir">match/[id]/edit/</span>page.tsx <span class="note"># Edit existing match</span><br>
+│           └── <span class="dir">settings/</span>page.tsx  <span class="note"># Teams, players, pitches, competitions management</span><br>
+├── <span class="dir">components/</span><br>
+│   ├── <span class="dir">ui/</span>                <span class="note"># Base UI + Radix primitives (button, input, card, dialog, tabs, select…)</span><br>
+│   ├── <span class="dir">layout/</span>            <span class="note"># AppShell, AppSidebar, AppTopbar, AppBottomNav, PublicHeader, ThemeToggle, LocaleSwitcher</span><br>
+│   ├── <span class="dir">providers/</span>         <span class="note"># AuthProvider</span><br>
+│   ├── <span class="dir">match/</span>             <span class="note"># ScoreBoard, MatchCard, MatchProgress, MatchStatusBadge, EventFeed, EventFeedItem, EventBadge, LiveControlPanel</span><br>
+│   ├── <span class="dir">forms/</span>             <span class="note"># MatchForm, EventForm, LoginForm, RegisterForm</span><br>
+│   ├── <span class="dir">settings/</span>          <span class="note"># TeamsTab, TeamDetail, MyTeamPicker, PlayersPanel, PitchesPanel, CompetitionsPanel</span><br>
+│   └── PasswordStrengthIndicator.tsx<br>
+├── <span class="dir">lib/</span><br>
+│   ├── firebase.ts             <span class="note"># initializeApp — exports auth, db</span><br>
+│   ├── firebaseServices.ts     <span class="note"># All Firestore CRUD (only place db is used)</span><br>
+│   └── utils.ts               <span class="note"># cn, formatMinute, getFirebaseErrorMessage, session helpers, clock helpers</span><br>
+├── <span class="dir">types/</span><br>
+│   └── index.ts               <span class="note"># All domain types and event type constants</span><br>
+├── <span class="dir">i18n/</span><br>
+│   ├── routing.ts             <span class="note"># Locale list, defaultLocale</span><br>
+│   └── request.ts             <span class="note"># getRequestConfig</span><br>
+└── proxy.ts                   <span class="note"># Next.js 16 middleware — next-intl + auth session guard (NOT middleware.ts)</span><br>
+<br>
+<span class="dir">messages/</span>  cs.json · en.json     <span class="note"># 300+ i18n keys (Czech primary)</span><br>
+<span class="dir">public/</span>    manifest.json · sw.js<br>
+<span class="file">next.config.js</span>  ·  <span class="file">tailwind.config.ts</span>  ·  <span class="file">eslint.config.mjs</span>  ·  <span class="file">tsconfig.json</span>
+  </div>
+</div>
+
+<!-- ROUTE MAP -->
+<div class="section" id="routing">
+  <h2>Route Map</h2>
+  <p class="section-desc">All Next.js routes. Every route lives under <code>src/app/[locale]/</code>. Middleware: <code>src/proxy.ts</code>.</p>
+
+  <table>
+    <thead><tr><th>URL Pattern</th><th>Access</th><th>File</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>/cs</code> · <code>/en</code></td><td><span class="tag tag-public">public</span></td><td><code>[locale]/page.tsx</code></td><td>Home page — live matches, upcoming, finished today, search</td></tr>
+      <tr><td><code>/cs/auth/login</code></td><td><span class="tag tag-public">public</span></td><td><code>[locale]/auth/login/page.tsx</code></td><td>Email + password login, sets session cookie on success</td></tr>
+      <tr><td><code>/cs/auth/register</code></td><td><span class="tag tag-public">public</span></td><td><code>[locale]/auth/register/page.tsx</code></td><td>Create reporter account, writes Firestore user doc</td></tr>
+      <tr><td><code>/cs/match/:id</code></td><td><span class="tag tag-public">public</span></td><td><code>[locale]/match/[id]/page.tsx</code></td><td>Public viewer for <em>finished</em> matches — full event timeline, summary</td></tr>
+      <tr><td><code>/cs/broadcast/:id</code></td><td><span class="tag tag-live">live</span></td><td><code>[locale]/broadcast/[id]/page.tsx</code></td><td>Public real-time broadcast viewer — scoreboard, live feed, QR, notifications</td></tr>
+      <tr><td><code>/cs/dashboard</code></td><td><span class="tag tag-auth">auth</span></td><td><code>[locale]/dashboard/page.tsx</code></td><td>Reporter dashboard — tabs: live, upcoming, finished matches</td></tr>
+      <tr><td><code>/cs/dashboard/match/new</code></td><td><span class="tag tag-auth">auth</span></td><td><code>[locale]/dashboard/match/new/page.tsx</code></td><td>Create new match — MatchForm + MyTeamPicker</td></tr>
+      <tr><td><code>/cs/dashboard/match/:id</code></td><td><span class="tag tag-auth">auth</span></td><td><code>[locale]/dashboard/match/[id]/page.tsx</code></td><td>Match control — ScoreBoard + LiveControlPanel, broadcast link</td></tr>
+      <tr><td><code>/cs/dashboard/match/:id/edit</code></td><td><span class="tag tag-auth">auth</span></td><td><code>[locale]/dashboard/match/[id]/edit/page.tsx</code></td><td>Edit match form — same MatchForm with pre-filled data</td></tr>
+      <tr><td><code>/cs/dashboard/settings</code></td><td><span class="tag tag-auth">auth</span></td><td><code>[locale]/dashboard/settings/page.tsx</code></td><td>Manage teams, players, pitches, competitions</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Layout hierarchy</h3>
+  <pre>app/[locale]/layout.tsx             <span class="c"># next-intl, AuthProvider, ThemeProvider, fonts</span>
+├── auth/layout.tsx                  <span class="c"># Thin passthrough — server middleware handles auth redirect</span>
+│   ├── auth/login/page.tsx
+│   └── auth/register/page.tsx
+├── dashboard/layout.tsx             <span class="c"># AppShell (sidebar + topbar + bottom nav)</span>
+│   ├── dashboard/page.tsx
+│   ├── dashboard/match/new/page.tsx
+│   ├── dashboard/match/[id]/page.tsx
+│   ├── dashboard/match/[id]/edit/page.tsx
+│   └── dashboard/settings/page.tsx
+├── match/[id]/page.tsx              <span class="c"># No shared shell — standalone viewer</span>
+└── broadcast/[id]/page.tsx          <span class="c"># No shared shell — standalone viewer</span></pre>
+</div>
+
+<!-- FIRESTORE SCHEMA -->
+<div class="section" id="firestore">
+  <h2>Firestore Schema</h2>
+  <p class="section-desc">All collections, doc shapes, and write rules.</p>
+
+  <h3>Collections</h3>
+  <pre>users/{uid}                             <span class="c"># Reporter user doc, keyed by Firebase Auth UID</span>
+matches/{matchId}                       <span class="c"># Match doc — always public (isPublic: true)</span>
+matches/{matchId}/events/{eventId}      <span class="c"># Event subcollection — NEVER deleted, source of truth</span>
+users/{uid}/teams/{teamId}              <span class="c"># Reporter's saved team</span>
+users/{uid}/teams/{teamId}/players/{id}  <span class="c"># Team player (name, jerseyNumber)</span>
+users/{uid}/teams/{teamId}/pitches/{id}  <span class="c"># Team pitch (name)</span>
+users/{uid}/teams/{teamId}/competitions/{id} <span class="c"># Competition (name)</span></pre>
+
+  <h3>Match document fields</h3>
+  <table>
+    <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><code>id</code></td><td>string</td><td>Firestore doc ID</td></tr>
+      <tr><td><code>reporterId</code></td><td>string</td><td>Firebase Auth UID of creator</td></tr>
+      <tr><td><code>reporterName</code></td><td>string</td><td>Display name of creator</td></tr>
+      <tr><td><code>homeTeam</code> / <code>awayTeam</code></td><td>string</td><td>Team display names</td></tr>
+      <tr><td><code>homePlayers</code> / <code>awayPlayers</code></td><td>string[]</td><td>Free-text player lists</td></tr>
+      <tr><td><code>homeScore</code> / <code>awayScore</code></td><td>number</td><td>Auto-incremented by <code>addMatchEvent</code></td></tr>
+      <tr><td><code>homeShootoutScore</code> / <code>awayShootoutScore</code></td><td>number</td><td>Penalty shootout scores, separate from match score</td></tr>
+      <tr><td><code>enabledEventTypes</code></td><td>MatchEventType[]</td><td>Gameplay events the reporter configured for this match</td></tr>
+      <tr><td><code>status</code></td><td>MatchStatus</td><td>See status enum below</td></tr>
+      <tr><td><code>currentMinute</code></td><td>number</td><td>Match minute when <code>currentMinuteAt</code> was saved</td></tr>
+      <tr><td><code>currentMinuteAt</code></td><td>Timestamp</td><td>When <code>currentMinute</code> was last set; viewers derive elapsed time from this</td></tr>
+      <tr><td><code>halfNumber</code></td><td>1 | 2 | null</td><td>For standard 2-half matches</td></tr>
+      <tr><td><code>parts</code> / <code>partDuration</code> / <code>currentPart</code></td><td>number</td><td>For configurable multi-part matches (1–4 parts)</td></tr>
+      <tr><td><code>venue</code> / <code>competition</code></td><td>string</td><td>Display metadata</td></tr>
+      <tr><td><code>scheduledAt</code></td><td>Timestamp</td><td>Kick-off time</td></tr>
+      <tr><td><code>description</code></td><td>string | null</td><td>Auto-filled from match form template</td></tr>
+      <tr><td><code>isPublic</code></td><td>true</td><td>Always true — all matches are public</td></tr>
+      <tr><td><code>viewerCount</code></td><td>number</td><td>Incremented/decremented when viewers open/close the broadcast page</td></tr>
+      <tr><td><code>summary</code></td><td>MatchSummary | null</td><td>Written by <code>writeMatchSummary()</code> on finish</td></tr>
+      <tr><td><code>createdAt</code> / <code>updatedAt</code></td><td>Timestamp</td><td>Standard audit fields</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Match status enum</h3>
+  <pre>type MatchStatus =
+  "scheduled"          <span class="c"># Not yet started</span>
+  | "live_first"       <span class="c"># First half / first part running</span>
+  | "half_time"        <span class="c"># Between first and second half</span>
+  | "live_second"      <span class="c"># Second half running</span>
+  | "live_part"        <span class="c"># Part N running (multi-part mode)</span>
+  | "break"            <span class="c"># Between parts (multi-part mode)</span>
+  | "extra_time"       <span class="c"># Extra time running (continuation past full-time)</span>
+  | "penalty_shootout" <span class="c"># Shootout in progress</span>
+  | "finished"         <span class="c"># Final whistle blown, summary written</span>
+  | "cancelled"        <span class="c"># Match abandoned</span>
+  | "postponed"        <span class="c"># Match rescheduled</span></pre>
+
+  <h3>Event document fields</h3>
+  <table>
+    <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><code>id</code></td><td>string</td><td>Firestore doc ID</td></tr>
+      <tr><td><code>matchId</code></td><td>string</td><td>Parent match ID</td></tr>
+      <tr><td><code>type</code></td><td>MatchEventType</td><td>One of the 30 event types (see Events section)</td></tr>
+      <tr><td><code>minute</code></td><td>number</td><td>Match minute when event occurred</td></tr>
+      <tr><td><code>addedTime</code></td><td>number | null</td><td>Added time minutes (e.g. 45+2 → addedTime: 2)</td></tr>
+      <tr><td><code>team</code></td><td>"home" | "away" | null</td><td>Which team the event belongs to</td></tr>
+      <tr><td><code>playerName</code></td><td>string | null</td><td>Player who performed the event</td></tr>
+      <tr><td><code>assistName</code></td><td>string | null</td><td>Assisting player (goals only)</td></tr>
+      <tr><td><code>playerOutName</code></td><td>string | null</td><td>Player coming off (substitution)</td></tr>
+      <tr><td><code>shootoutResult</code></td><td>"scored" | "missed" | "saved" | null</td><td>Penalty kick outcome</td></tr>
+      <tr><td><code>description</code></td><td>string | null</td><td>Free-text note</td></tr>
+      <tr><td><code>partNumber</code></td><td>number | null</td><td>Which part (multi-part mode)</td></tr>
+      <tr><td><code>createdAt</code> / <code>updatedAt</code></td><td>Timestamp</td><td>Standard audit fields</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- PAGES: PUBLIC -->
+<div class="section" id="pg-public">
+  <h2>Public Pages</h2>
+
+  <div class="page-entry">
+    <div class="page-entry-header">
+      <span class="tag tag-public">public</span>
+      <span class="page-entry-route">/cs · /en</span>
+      <span class="page-entry-file">src/app/[locale]/page.tsx</span>
+    </div>
+    <div class="page-entry-body">
+      <p>Public home page. Loads <code>getPublicMatches()</code> on mount — one-time fetch. Displays three tabs: Live (filtered by LIVE_STATUSES), Upcoming (scheduled), Finished Today. Search bar filters by team name. Each match shown as a <code>MatchCard</code>. No auth required.</p>
+      <div class="pill-list"><span class="pill">MatchCard</span><span class="pill">MatchStatusBadge</span></div>
+      <p><strong>Services:</strong> <code>getPublicMatches()</code></p>
+    </div>
+  </div>
+
+  <div class="page-entry">
+    <div class="page-entry-header">
+      <span class="tag tag-public">public</span>
+      <span class="page-entry-route">/cs/match/:id</span>
+      <span class="page-entry-file">src/app/[locale]/match/[id]/page.tsx</span>
+    </div>
+    <div class="page-entry-body">
+      <p>Public viewer for <em>finished</em> matches. Loads match + events once. Shows <code>ScoreBoard</code> with final score, full <code>EventFeed</code> (one-time fetch mode, newest-first). Displays match summary (scorers, cards). QR code and copy link for sharing. No real-time listener needed.</p>
+      <div class="pill-list"><span class="pill">ScoreBoard</span><span class="pill">EventFeed</span></div>
+      <p><strong>Services:</strong> <code>getMatch(id)</code>, <code>getMatchEvents(id)</code></p>
+    </div>
+  </div>
+</div>
+
+<!-- PAGES: BROADCAST -->
+<div class="section" id="pg-broadcast">
+  <h2>Broadcast &amp; Viewer Pages</h2>
+
+  <div class="page-entry">
+    <div class="page-entry-header">
+      <span class="tag tag-live">live</span>
+      <span class="page-entry-route">/cs/broadcast/:id</span>
+      <span class="page-entry-file">src/app/[locale]/broadcast/[id]/page.tsx</span>
+    </div>
+    <div class="page-entry-body">
+      <p>Primary real-time viewer page for live matches. On mount: increments <code>viewerCount</code>; on unmount: decrements it. <code>EventFeed</code> opens <code>onSnapshot</code> on events subcollection. ScoreBoard updates via <code>onMatchUpdate</code> callback — EventFeed passes updated match data up when it detects score changes. Shows share controls, QR code. Viewer can request browser notification permission for goals and red cards.</p>
+      <div class="pill-list"><span class="pill">ScoreBoard</span><span class="pill">EventFeed</span><span class="pill">MatchProgress</span></div>
+      <p><strong>Services:</strong> <code>incrementViewerCount()</code>, <code>decrementViewerCount()</code></p>
+      <p><strong>Note:</strong> EventFeed auto-switches to one-time fetch if it detects <code>status === "finished"</code>.</p>
+    </div>
+  </div>
+</div>
+
+<!-- PAGES: AUTH -->
+<div class="section" id="pg-auth">
+  <h2>Auth Pages</h2>
+  <p class="section-desc">Under <code>src/app/[locale]/auth/</code>. Layout is a thin passthrough — middleware handles redirects.</p>
+
+  <div class="page-entry">
+    <div class="page-entry-header">
+      <span class="tag tag-public">public</span>
+      <span class="page-entry-route">/cs/auth/login</span>
+      <span class="page-entry-file">src/app/[locale]/auth/login/page.tsx</span>
+    </div>
+    <div class="page-entry-body">
+      <p>Email + password login. On success: (1) get Firebase ID token, (2) POST to <code>/api/auth/login</code> with <code>Authorization: Bearer &lt;idToken&gt;</code> to set HTTP-only session cookie, (3) fetch Firestore user doc via <code>getUserDoc(uid)</code>, (4) call <code>setUser(userDoc)</code>, (5) <code>router.push</code> to dashboard. The <code>setUser</code> before push prevents a race where AppShell sees an empty context.</p>
+      <div class="pill-list"><span class="pill">LoginForm</span></div>
+    </div>
+  </div>
+
+  <div class="page-entry">
+    <div class="page-entry-header">
+      <span class="tag tag-public">public</span>
+      <span class="page-entry-route">/cs/auth/register</span>
+      <span class="page-entry-file">src/app/[locale]/auth/register/page.tsx</span>
+    </div>
+    <div class="page-entry-body">
+      <p>Create reporter account. Fields: displayName, email, password, confirmPassword. On success: (1) Firebase <code>createUserWithEmailAndPassword</code> + <code>updateProfile</code>, (2) POST to <code>/api/auth/login</code> to set cookie, (3) <code>createUserDoc(uid, email, displayName)</code>, (4) <code>setUser(newUser)</code>, (5) <code>router.push</code>. Shows <code>PasswordStrengthIndicator</code> as user types.</p>
+      <div class="pill-list"><span class="pill">RegisterForm</span><span class="pill">PasswordStrengthIndicator</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGES: DASHBOARD -->
+<div class="section" id="pg-dashboard">
+  <h2>Dashboard Pages</h2>
+
+  <div class="page-entry">
+    <div class="page-entry-header">
+      <span class="tag tag-auth">auth</span>
+      <span class="page-entry-route">/cs/dashboard</span>
+      <span class="page-entry-file">src/app/[locale]/dashboard/page.tsx</span>
+    </div>
+    <div class="page-entry-body">
+      <p>Reporter home. Loads <code>getReporterMatches(uid)</code> once. Tabs: Live (with pulsing indicator), Upcoming, Finished. Each match shown as <code>MatchCard</code> with actions: Open broadcast, Edit, Duplicate, Cancel. Notifies reporter if <code>flive_session</code> has pending events from a previous offline session.</p>
+      <div class="pill-list"><span class="pill">MatchCard</span><span class="pill">MatchStatusBadge</span></div>
+      <p><strong>Services:</strong> <code>getReporterMatches(uid)</code></p>
+    </div>
+  </div>
+
+  <div class="page-entry">
+    <div class="page-entry-header">
+      <span class="tag tag-auth">auth</span>
+      <span class="page-entry-route">/cs/dashboard/match/new</span>
+      <span class="page-entry-file">src/app/[locale]/dashboard/match/new/page.tsx</span>
+    </div>
+    <div class="page-entry-body">
+      <p>Create match. <code>MatchForm</code> with team auto-fill via <code>MyTeamPicker</code> dialog. Reporter picks a saved team → form fills home/away teams, players, pitch, competition, part count and duration. On submit: <code>createMatch(data)</code> → redirect to dashboard.</p>
+      <div class="pill-list"><span class="pill">MatchForm</span><span class="pill">MyTeamPicker</span></div>
+      <p><strong>Services:</strong> <code>createMatch()</code>, <code>getTeams(uid)</code></p>
+    </div>
+  </div>
+
+  <div class="page-entry">
+    <div class="page-entry-header">
+      <span class="tag tag-auth">auth</span>
+      <span class="page-entry-route">/cs/dashboard/match/:id</span>
+      <span class="page-entry-file">src/app/[locale]/dashboard/match/[id]/page.tsx</span>
+    </div>
+    <div class="page-entry-body">
+      <p>The live broadcast control centre. Shows <code>ScoreBoard</code> (large) and <code>LiveControlPanel</code>. Reporter transitions match phases, logs events, monitors pending offline queue, copies broadcast link. The <code>LiveControlPanel</code> manages its own clock state (interval + 30s sync to Firestore). <code>EventFeed</code> is also displayed here so the reporter can see and delete events.</p>
+      <div class="pill-list"><span class="pill">ScoreBoard</span><span class="pill">LiveControlPanel</span><span class="pill">EventFeed</span><span class="pill">MatchProgress</span></div>
+      <p><strong>Services:</strong> <code>getMatch(id)</code>, <code>updateMatchStatus()</code>, <code>updateMatchClock()</code>, <code>addMatchEvent()</code>, <code>deleteMatchEvent()</code>, <code>writeMatchSummary()</code></p>
+    </div>
+  </div>
+
+  <div class="page-entry">
+    <div class="page-entry-header">
+      <span class="tag tag-auth">auth</span>
+      <span class="page-entry-route">/cs/dashboard/settings</span>
+      <span class="page-entry-file">src/app/[locale]/dashboard/settings/page.tsx</span>
+    </div>
+    <div class="page-entry-body">
+      <p>Club data management. Tabs: Teams. Each team expands to show Players, Pitches, and Competitions panels. Reporter can add/remove all entities. Data persists under <code>users/{uid}/teams/{teamId}/...</code> and auto-fills the match creation form via <code>MyTeamPicker</code>.</p>
+      <div class="pill-list"><span class="pill">TeamsTab</span><span class="pill">TeamDetail</span><span class="pill">PlayersPanel</span><span class="pill">PitchesPanel</span><span class="pill">CompetitionsPanel</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGES: SETTINGS -->
+<div class="section" id="pg-settings">
+  <h2>Settings Components</h2>
+  <p class="section-desc">Under <code>src/components/settings/</code></p>
+
+  <table>
+    <thead><tr><th>Component</th><th>Responsibility</th></tr></thead>
+    <tbody>
+      <tr><td><code>TeamsTab</code></td><td>Lists all reporter teams. Each row expands to <code>TeamDetail</code>. Add new team form inline. Delete button with confirmation dialog.</td></tr>
+      <tr><td><code>TeamDetail</code></td><td>Edit team name. Sub-panels for Players, Pitches, Competitions — each with add/remove controls.</td></tr>
+      <tr><td><code>MyTeamPicker</code></td><td>Dialog opened from MatchForm. Shows reporter's saved teams. Selecting a team calls a callback that fills the match form (homeTeam, homePlayers, venue, competition, parts).</td></tr>
+      <tr><td><code>PlayersPanel</code></td><td>Table of players with jersey number. Add: name + number input. Remove with confirm. Calls <code>addTeamPlayer</code>/<code>removeTeamPlayer</code>.</td></tr>
+      <tr><td><code>PitchesPanel</code></td><td>List of pitches. Add/remove. Calls <code>addTeamPitch</code>/<code>removeTeamPitch</code>.</td></tr>
+      <tr><td><code>CompetitionsPanel</code></td><td>List of competitions. Add/remove. Calls <code>addTeamCompetition</code>/<code>removeTeamCompetition</code>.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- COMPONENTS: LAYOUT -->
+<div class="section" id="comp-layout">
+  <h2>Layout Components</h2>
+  <p class="section-desc"><code>src/components/layout/</code></p>
+
+  <table>
+    <thead><tr><th>Component</th><th>Responsibility</th><th>Key details</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>AppShell</code></td>
+        <td>Dashboard wrapper</td>
+        <td>Checks <code>useAuth()</code>. Shows spinner while loading. Renders <code>AppSidebar</code> + <code>AppTopbar</code> + <code>AppBottomNav</code>. The middleware handles actual auth redirect — AppShell is a fallback guard only.</td>
+      </tr>
+      <tr>
+        <td><code>AppSidebar</code></td>
+        <td>Desktop left nav</td>
+        <td>Links: Dashboard, New Match, Settings. Active state from <code>usePathname()</code>. Reporter name + logout at bottom. Hidden on mobile.</td>
+      </tr>
+      <tr>
+        <td><code>AppTopbar</code></td>
+        <td>Mobile header</td>
+        <td>Page title, user menu with logout, theme toggle. Visible on mobile only.</td>
+      </tr>
+      <tr>
+        <td><code>AppBottomNav</code></td>
+        <td>Mobile tab bar</td>
+        <td>3 tabs: Dashboard, New Match, Settings. Icon + label. Active tab highlighted in violet. Visible on mobile only.</td>
+      </tr>
+      <tr>
+        <td><code>PublicHeader</code></td>
+        <td>Public page header</td>
+        <td>FLive logo, theme toggle, locale switcher, login + register links. Mobile burger menu. Glassmorphism (<code>.glass</code> utility).</td>
+      </tr>
+      <tr>
+        <td><code>ThemeToggle</code></td>
+        <td>Dark / light / system</td>
+        <td>Uses <code>next-themes</code> <code>useTheme()</code>. Icon cycles through sun/moon/system. Note: current implementation has a <code>setState</code> in <code>useEffect</code> which triggers an ESLint warning — do not copy this pattern.</td>
+      </tr>
+      <tr>
+        <td><code>LocaleSwitcher</code></td>
+        <td>Language picker</td>
+        <td>Reads current locale from <code>useLocale()</code>. On change: sets <code>window.location.href</code> with new locale prefix, stripping the old prefix. Dropdown (cs / en) with flag emoji.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- COMPONENTS: MATCH -->
+<div class="section" id="comp-match">
+  <h2>Match Components</h2>
+  <p class="section-desc"><code>src/components/match/</code> — the core of the live broadcast experience.</p>
+
+  <table>
+    <thead><tr><th>Component</th><th>Props</th><th>Responsibility</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>ScoreBoard</code></td>
+        <td><code>match, liveSeconds?</code></td>
+        <td>Full scoreboard: home/away team names, scores (large), live clock (MM:SS, client-computed from <code>currentMinuteAt</code>), shootout scores, competition, venue, description. <code>liveSeconds</code> prop overrides computed seconds for the reporter's own authoritative clock.</td>
+      </tr>
+      <tr>
+        <td><code>MatchCard</code></td>
+        <td><code>match, actions?</code></td>
+        <td>Compact match list item. Shows status badge, teams, score, scheduled time. In reporter dashboard: action menu (Open broadcast, Edit, Duplicate, Cancel). In public home: link to broadcast page.</td>
+      </tr>
+      <tr>
+        <td><code>MatchProgress</code></td>
+        <td><code>match</code></td>
+        <td>Visual phase indicator — horizontal progress bar or phase labels showing where the match is in its lifecycle (1st half → HT → 2nd half → FT → ET → Shootout → FT).</td>
+      </tr>
+      <tr>
+        <td><code>MatchStatusBadge</code></td>
+        <td><code>status</code></td>
+        <td>Colour-coded badge. Live statuses show a pulsing red dot (CSS <code>animate-live-pulse</code>). Finished shows green, cancelled shows zinc.</td>
+      </tr>
+      <tr>
+        <td><code>EventFeed</code></td>
+        <td><code>matchId, match, onMatchUpdate?, isReporter?</code></td>
+        <td><strong>Only component using <code>onSnapshot</code>.</strong> Opens listener on <code>matches/{matchId}/events</code>. Renders <code>EventFeedItem</code> for each event. Reporter: shows delete button on each item. Calls <code>onMatchUpdate</code> when it detects score change. Switches to one-time fetch when <code>match.status === "finished"</code>. Also triggers browser notifications for goals/red cards if viewer has granted permission.</td>
+      </tr>
+      <tr>
+        <td><code>EventFeedItem</code></td>
+        <td><code>event, match, isReporter?</code></td>
+        <td>Single event row: time pill (<code>formatMinute(minute, addedTime)</code>), <code>EventBadge</code>, team/player details, optional description. Delete button (reporter only) with a confirmation step.</td>
+      </tr>
+      <tr>
+        <td><code>EventBadge</code></td>
+        <td><code>type</code></td>
+        <td>Icon + short label for the event type. Maps all 30 event types to a lucide icon and a translated short label.</td>
+      </tr>
+      <tr>
+        <td><code>LiveControlPanel</code></td>
+        <td><code>match, onMatchUpdated</code></td>
+        <td>The reporter's broadcast dashboard. Contains: phase transition buttons (Start / End half / Extra Time / Finish), minute display + manual adjustment, event logging buttons (each configured event type), event config sidebar (toggle enabled events), offline warning banner, pending events counter, broadcast link with copy button, QR code button. Manages match clock (setInterval + 30s Firestore sync). Keyboard shortcuts active during live phases.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- COMPONENTS: FORMS -->
+<div class="section" id="comp-forms">
+  <h2>Forms</h2>
+  <p class="section-desc"><code>src/components/forms/</code> — all use react-hook-form + Zod.</p>
+
+  <table>
+    <thead><tr><th>Component</th><th>Responsibility</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>MatchForm</code></td>
+        <td>Create / edit match. Fields: home team, away team, home players, away players, venue, competition, scheduled time, parts (1–4 selector), part duration, description, enabled event types (checkbox grid grouped by <code>EVENT_GROUPS</code>). MyTeamPicker button auto-fills all team-related fields from saved data.</td>
+      </tr>
+      <tr>
+        <td><code>EventForm</code></td>
+        <td>Log a match event. Fields: event type (dropdown filtered to enabled types), team (home/away), player name (with autocomplete from match players), assist name, player out name (substitution), shootout result (scored/missed/saved), added time, description. Only shows fields relevant to the selected event type.</td>
+      </tr>
+      <tr>
+        <td><code>LoginForm</code></td>
+        <td>Email + password with Zod validation. Error messages via <code>getFirebaseErrorMessage(code)</code>.</td>
+      </tr>
+      <tr>
+        <td><code>RegisterForm</code></td>
+        <td>DisplayName + email + password + confirm. Zod schema validates password match. Renders <code>PasswordStrengthIndicator</code> below the password field.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- COMPONENTS: UI -->
+<div class="section" id="comp-ui">
+  <h2>UI Primitives</h2>
+  <p class="section-desc"><code>src/components/ui/</code> — wrappers around @base-ui/react and Radix UI. Do not edit directly unless adding a new wrapper.</p>
+
+  <div class="pill-list">
+    <span class="pill">button</span><span class="pill">input</span><span class="pill">label</span>
+    <span class="pill">card</span><span class="pill">dialog</span><span class="pill">textarea</span>
+    <span class="pill">badge</span><span class="pill">tabs</span><span class="pill">select</span>
+    <span class="pill">dropdown-menu</span><span class="pill">separator</span><span class="pill">skeleton</span>
+  </div>
+
+  <div class="box" style="margin-top:14px">
+    <div class="box-title">forwardRef requirement for Base UI wrappers</div>
+    <p><code>Button</code> and <code>Input</code> wrap <code>@base-ui/react</code> primitives. Any wrapper used with react-hook-form's <code>register()</code> or Radix's <code>asChild</code> <strong>must</strong> use <code>React.forwardRef</code> and forward the ref to the primitive. This is already done for <code>Input</code>. Apply the same pattern to any new wrappers.</p>
+  </div>
+
+  <div class="box">
+    <div class="box-title">Radix asChild is incompatible with Base UI Button</div>
+    <p><code>DropdownMenuTrigger asChild</code> and similar Radix patterns silently fail when the child is the flive-web <code>Button</code> component. Style the trigger directly via <code>className</code> instead of using <code>asChild</code>.</p>
+  </div>
+</div>
+
+<!-- COMPONENTS: PROVIDERS -->
+<div class="section" id="comp-providers">
+  <h2>Providers</h2>
+  <p class="section-desc"><code>src/components/providers/</code></p>
+
+  <table>
+    <thead><tr><th>Component</th><th>Responsibility</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>AuthProvider</code></td>
+        <td>Wraps the app. Listens to <code>onAuthStateChanged</code> → if signed in, calls <code>getUserDoc(uid)</code> → <code>setUser(userDoc)</code>. Exposes <code>useAuth()</code>: <code>{ user, loading, setUser, logout }</code>. <code>logout</code> calls <code>/api/auth/logout</code> first (clears server cookie), then Firebase <code>signOut()</code>, then <code>setUser(null)</code>.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- LIB: FIREBASE -->
+<div class="section" id="lib-firebase">
+  <h2>Firebase Init</h2>
+  <p class="section-desc"><code>src/lib/firebase.ts</code></p>
+  <p>Calls <code>initializeApp(config)</code> once (idempotent guard). Exports: <code>auth</code> (FirebaseAuth), <code>db</code> (Firestore). This is the <strong>only file</strong> that may import from <code>firebase/*</code>. Config read from <code>NEXT_PUBLIC_FIREBASE_*</code> env vars.</p>
+</div>
+
+<!-- LIB: SERVICES -->
+<div class="section" id="lib-services">
+  <h2>Firestore Services</h2>
+  <p class="section-desc"><code>src/lib/firebaseServices.ts</code> — the only file that imports <code>db</code> from <code>firebase.ts</code>.</p>
+
+  <h3>User operations</h3>
+  <pre>getUserDoc(uid)                       → User | null
+createUserDoc(uid, email, displayName) → User</pre>
+
+  <h3>Match operations — public</h3>
+  <pre>getPublicMatches()                    → Match[]          <span class="c"># all matches, filtered client-side</span>
+getMatch(matchId)                     → Match | null</pre>
+
+  <h3>Match operations — reporter</h3>
+  <pre>getReporterMatches(reporterId)        → Match[]
+createMatch(data)                     → string            <span class="c"># returns matchId</span>
+updateMatch(matchId, patch)           → void
+deleteMatch(matchId)                  → void
+cancelMatch(matchId)                  → void              <span class="c"># sets status: "cancelled"</span>
+updateMatchStatus(matchId, status, extra?) → void         <span class="c"># extra: currentMinute, halfNumber, currentPart</span>
+updateMatchClock(matchId, seconds)    → void              <span class="c"># syncs reporter clock to Firestore</span>
+duplicateMatch(match, reporterId)     → string            <span class="c"># creates a new match from existing, status "scheduled"</span></pre>
+
+  <h3>Event operations</h3>
+  <pre>getMatchEvents(matchId)               → MatchEvent[]
+addMatchEvent(matchId, eventData)     → string            <span class="c"># also auto-increments match score via increment()</span>
+deleteMatchEvent(matchId, event)      → void              <span class="c"># also auto-decrements match score</span></pre>
+
+  <h3>Viewer count</h3>
+  <pre>incrementViewerCount(matchId)         → void
+decrementViewerCount(matchId)         → void</pre>
+
+  <h3>Post-match</h3>
+  <pre>writeMatchSummary(matchId, events, match) → void        <span class="c"># compiles summary obj onto match doc</span></pre>
+
+  <h3>Team / player / pitch / competition</h3>
+  <pre>getTeams(uid)                         → Team[]
+addTeam(uid, name)                    → string
+deleteTeam(uid, teamId)               → void             <span class="c"># batch-deletes all subcollections</span>
+getTeamPlayers(uid, teamId)           → TeamPlayer[]
+addTeamPlayer(uid, teamId, name, jerseyNumber) → string
+removeTeamPlayer(uid, teamId, playerId) → void
+getTeamPitches(uid, teamId)           → TeamPitch[]
+addTeamPitch(uid, teamId, name)       → string
+removeTeamPitch(uid, teamId, pitchId) → void
+getTeamCompetitions(uid, teamId)      → TeamCompetition[]
+addTeamCompetition(uid, teamId, name) → string
+removeTeamCompetition(uid, teamId, competitionId) → void</pre>
+</div>
+
+<!-- LIB: UTILS -->
+<div class="section" id="lib-utils">
+  <h2>Utils &amp; Session Helpers</h2>
+  <p class="section-desc"><code>src/lib/utils.ts</code></p>
+
+  <table>
+    <thead><tr><th>Export</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>cn(...inputs)</code></td><td>Tailwind class merge — clsx + tailwind-merge</td></tr>
+      <tr><td><code>formatMinute(minute, addedTime?)</code></td><td>Formats as <code>45'</code> or <code>45+2'</code></td></tr>
+      <tr><td><code>getFirebaseErrorMessage(code)</code></td><td>Maps Firebase error codes to user-friendly Czech/English strings</td></tr>
+      <tr><td><code>getBroadcastSession()</code></td><td>Reads <code>flive_session</code> from localStorage → <code>BroadcastSession | null</code></td></tr>
+      <tr><td><code>setBroadcastSession(session)</code></td><td>Saves to localStorage</td></tr>
+      <tr><td><code>clearBroadcastSession()</code></td><td>Removes <code>flive_session</code> from localStorage</td></tr>
+      <tr><td><code>saveMatchClock(seconds)</code></td><td>Updates <code>clock.seconds</code> and <code>clock.savedAt</code> (Date.now()) in the session</td></tr>
+      <tr><td><code>clearMatchClock()</code></td><td>Removes clock from the session (called when match finishes)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- AUTH FLOW -->
+<div class="section" id="auth-flow">
+  <h2>Auth Flow</h2>
+
+  <h3>Login / Register sequence</h3>
+  <pre>1. Firebase signInWithEmailAndPassword / createUserWithEmailAndPassword
+2. cred.user.getIdToken()  →  idToken
+3. fetch("/api/auth/login", { method: "POST", headers: { Authorization: `Bearer ${idToken}` } })
+   → authMiddleware in proxy.ts intercepts, validates token, sets HTTP-only "session" cookie
+4. getUserDoc(uid)  →  userDoc
+5. setUser(userDoc)      <span class="c"># BEFORE router.push — prevents race condition</span>
+6. router.push(`/${locale}/dashboard`)</pre>
+
+  <h3>Logout sequence</h3>
+  <pre>1. fetch("/api/auth/logout", { method: "POST" })
+   → authMiddleware clears "session" cookie
+2. signOut(auth)          <span class="c"># Firebase client signout</span>
+3. setUser(null)</pre>
+
+  <h3>Request protection (proxy.ts)</h3>
+  <pre>Every request → authMiddleware checks "session" cookie:
+  Valid token   → handleValidToken:
+    - If /[locale]/auth/* path → redirect to /dashboard
+    - Otherwise → pass through intl middleware
+  Invalid token → handleInvalidToken:
+    - If /[locale]/dashboard/* or /[locale]/broadcast/* → redirectToLogin
+    - Otherwise → pass through intl middleware
+  Error         → pass through intl middleware</pre>
+
+  <h3>Required env vars</h3>
+  <pre>NEXT_PUBLIC_FIREBASE_API_KEY
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+NEXT_PUBLIC_FIREBASE_PROJECT_ID
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+NEXT_PUBLIC_FIREBASE_APP_ID
+NEXT_PUBLIC_FIREBASE_VAPID_KEY          <span class="c"># for FCM / push notifications</span>
+AUTH_COOKIE_SIGNATURE_KEY_CURRENT       <span class="c"># random 32-char secret</span>
+AUTH_COOKIE_SIGNATURE_KEY_PREVIOUS      <span class="c"># previous secret for rotation</span></pre>
+</div>
+
+<!-- REAL-TIME -->
+<div class="section" id="realtime">
+  <h2>Real-Time Pattern</h2>
+
+  <h3>Clock synchronisation</h3>
+  <p>The reporter's clock advances via <code>setInterval</code> every 1 second — purely client-side. Every 30 seconds, <code>updateMatchClock(matchId, seconds)</code> writes two fields to Firestore:</p>
+  <pre>currentMinute:   Math.floor(seconds / 60)
+currentMinuteAt: serverTimestamp()   <span class="c"># when that minute *started*</span></pre>
+  <p>Viewers compute elapsed time:</p>
+  <pre>const elapsed = (Date.now() - match.currentMinuteAt.toDate().getTime()) / 1000;
+const displaySeconds = match.currentMinute * 60 + elapsed;</pre>
+  <p>This means all viewers see the same clock without polling — they just do local arithmetic against the stored timestamp.</p>
+
+  <h3>EventFeed listener lifecycle</h3>
+  <pre>mount:
+  if match.status === "finished" → getMatchEvents(id)   <span class="c"># one-time fetch</span>
+  else → onSnapshot(collection, query)                   <span class="c"># real-time</span>
+
+inside snapshot callback:
+  if updated match.status === "finished" → unsubscribe and re-fetch once
+  if score changed → call onMatchUpdate(updatedMatch)    <span class="c"># reporter scoreboard sync</span>
+
+unmount: unsubscribe()</pre>
+</div>
+
+<!-- OFFLINE -->
+<div class="section" id="offline">
+  <h2>Offline Resilience</h2>
+
+  <h3>Session queue structure</h3>
+  <pre>// localStorage key: "flive_session"
+interface BroadcastSession {
+  matchId: string;
+  pendingEvents: PendingEvent[];
+  clock?: {
+    seconds: number;   <span class="c"># reporter's clock at time of save</span>
+    savedAt: number;   <span class="c"># Date.now() in ms</span>
+  };
+}
+
+interface PendingEvent {
+  localId: string;          <span class="c"># client-generated UUID for dedup</span>
+  event: Omit&lt;MatchEvent, "id" | "createdAt" | "updatedAt"&gt;;
+  queuedAt: string;         <span class="c"># ISO timestamp string</span>
+}</pre>
+
+  <h3>Reconnect flush</h3>
+  <p>When <code>LiveControlPanel</code> detects connectivity restored, it reads <code>getBroadcastSession()</code> and iterates <code>pendingEvents</code>, calling <code>addMatchEvent</code> for each. Successfully flushed events are removed from the session. On match finish, <code>clearBroadcastSession()</code> is called.</p>
+
+  <h3>Clock restoration</h3>
+  <p>On page reload, <code>LiveControlPanel</code> checks <code>getBroadcastSession().clock</code>. If present: it computes elapsed time since <code>savedAt</code> and resumes the clock from <code>seconds + elapsed</code>. This keeps the reporter's local clock consistent across page refreshes even without a network round-trip.</p>
+</div>
+
+<!-- TYPES -->
+<div class="section" id="types">
+  <h2>Types Reference</h2>
+  <p class="section-desc"><code>src/types/index.ts</code> — all domain types in one file.</p>
+
+  <div class="two-col">
+    <pre><span class="c">// Auth</span>
+interface User {
+  uid: string;
+  email: string;
+  displayName: string;
+  role: "reporter";
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+<span class="c">// Match summary (written on finish)</span>
+interface MatchSummary {
+  scorers: {
+    name: string;
+    team: "home" | "away";
+    minute: number;
+    isOwnGoal: boolean;
+  }[];
+  cards: {
+    name: string;
+    team: "home" | "away";
+    type: "yellow" | "red" | "second_yellow";
+    minute: number;
+  }[];
+  halfTimeScore: { home: number; away: number };
+  fullTimeScore: { home: number; away: number };
+  hadExtraTime: boolean;
+  shootoutScore: { home: number; away: number } | null;
+}</pre>
+    <pre><span class="c">// Settings types</span>
+interface Team { id: string; name: string; createdAt: Timestamp; }
+interface TeamPlayer {
+  id: string; name: string;
+  jerseyNumber: number | null;
+  createdAt: Timestamp;
+}
+interface TeamPitch  { id: string; name: string; createdAt: Timestamp; }
+interface TeamCompetition { id: string; name: string; createdAt: Timestamp; }
+
+<span class="c">// Offline session</span>
+interface PendingEvent {
+  localId: string;
+  event: Omit&lt;MatchEvent, "id" | "createdAt" | "updatedAt"&gt;;
+  queuedAt: string;
+}
+interface BroadcastSession {
+  matchId: string;
+  pendingEvents: PendingEvent[];
+  clock?: { seconds: number; savedAt: number; };
+}</pre>
+  </div>
+</div>
+
+<!-- EVENT TYPES -->
+<div class="section" id="events">
+  <h2>Event Types</h2>
+  <p class="section-desc">Defined in <code>src/types/index.ts</code>. Grouped in <code>EVENT_GROUPS</code> for the MatchForm checkbox selector.</p>
+
+  <h3>TIMELINE_EVENTS — always present, not configurable (10)</h3>
+  <div class="pill-list">
+    <span class="pill">match_start</span>
+    <span class="pill">first_half_end</span>
+    <span class="pill">second_half_start</span>
+    <span class="pill">full_time</span>
+    <span class="pill">extra_time_start</span>
+    <span class="pill">extra_time_end</span>
+    <span class="pill">penalty_shootout_start</span>
+    <span class="pill">match_finished</span>
+    <span class="pill">part_start</span>
+    <span class="pill">part_end</span>
+  </div>
+
+  <h3>GAMEPLAY_EVENTS — configurable per match (22)</h3>
+  <table>
+    <thead><tr><th>Group</th><th>Event types</th><th>Auto-updates score?</th></tr></thead>
+    <tbody>
+      <tr><td>Goals</td><td><code>goal</code>, <code>own_goal</code>, <code>penalty_scored</code>, <code>penalty_missed</code></td><td>goal/own_goal/penalty_scored: yes</td></tr>
+      <tr><td>Cards</td><td><code>yellow_card</code>, <code>second_yellow</code>, <code>red_card</code></td><td>no</td></tr>
+      <tr><td>Set pieces</td><td><code>corner</code>, <code>free_kick</code>, <code>penalty_awarded</code>, <code>offside</code>, <code>foul</code></td><td>no</td></tr>
+      <tr><td>Shootout</td><td><code>penalty_kick</code></td><td>yes — if <code>shootoutResult: "scored"</code></td></tr>
+      <tr><td>Stats</td><td><code>shot_on_target</code>, <code>shot_off_target</code>, <code>save</code>, <code>injury</code>, <code>injury_time_announced</code></td><td>no</td></tr>
+      <tr><td>Other</td><td><code>substitution</code>, <code>var_review</code>, <code>var_goal_disallowed</code>, <code>var_goal_confirmed</code>, <code>custom_note</code></td><td>no (var_goal_disallowed: decrements)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- i18n -->
+<div class="section" id="i18n">
+  <h2>i18n</h2>
+  <p class="section-desc">next-intl 3.26. Czech primary (<code>cs</code>), English secondary (<code>en</code>). All routes under <code>/[locale]/</code>.</p>
+
+  <table>
+    <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>src/proxy.ts</code></td><td>Middleware — MUST be named <code>proxy.ts</code>, function must be named <code>proxy</code>.</td></tr>
+      <tr><td><code>src/i18n/routing.ts</code></td><td>Defines <code>locales: ["cs", "en"]</code>, <code>defaultLocale: "cs"</code>.</td></tr>
+      <tr><td><code>src/i18n/request.ts</code></td><td><code>getRequestConfig</code> — loads message file per request locale.</td></tr>
+      <tr><td><code>messages/cs.json</code></td><td>Czech strings (primary — always complete). 300+ keys.</td></tr>
+      <tr><td><code>messages/en.json</code></td><td>English strings — must mirror cs.json structure.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Message namespaces</h3>
+  <div class="pill-list">
+    <span class="pill">common</span><span class="pill">auth</span><span class="pill">home</span>
+    <span class="pill">match</span><span class="pill">dashboard</span><span class="pill">matchForm</span>
+    <span class="pill">control</span><span class="pill">events</span><span class="pill">eventDescriptions</span>
+    <span class="pill">broadcast</span><span class="pill">eventForm</span><span class="pill">settings</span>
+  </div>
+
+  <h3>Usage in components</h3>
+  <pre><span class="k">const</span> t = useTranslations(<span class="s">'events'</span>);
+return &lt;span&gt;{t(<span class="s">'goal'</span>)}&lt;/span&gt;;
+<span class="c">// Never hardcode Czech or English strings in .tsx files</span>
+<span class="c">// Use useRouter() from "next-intl/navigation" for locale-aware pushes</span></pre>
+</div>
+
+<!-- DESIGN TOKENS -->
+<div class="section" id="design">
+  <h2>Design Tokens</h2>
+  <p class="section-desc">CSS custom properties in <code>src/app/globals.css</code> + Tailwind config in <code>tailwind.config.ts</code>.</p>
+
+  <h3>Color system</h3>
+  <table>
+    <thead><tr><th>Token</th><th>Light value</th><th>Dark value</th><th>Use</th></tr></thead>
+    <tbody>
+      <tr><td><code>--primary</code></td><td>oklch(0.50 0.27 285)</td><td>oklch(0.72 0.27 285)</td><td>Violet — CTAs, active states, brand</td></tr>
+      <tr><td><code>--secondary</code></td><td>oklch(0.94 0.025 285)</td><td>oklch(0.24 0.022 285)</td><td>Subtle violet surface, chips</td></tr>
+      <tr><td><code>--background</code></td><td>oklch(0.99 0.003 285)</td><td>oklch(0.12 0.022 285)</td><td>Page background</td></tr>
+      <tr><td><code>--card</code></td><td>oklch(1 0 0)</td><td>oklch(0.16 0.020 285)</td><td>Card / surface background</td></tr>
+      <tr><td><code>--amber</code></td><td>oklch(0.78 0.18 72)</td><td>oklch(0.78 0.18 72)</td><td>Live clock, scores, live indicators</td></tr>
+      <tr><td><code>--muted</code></td><td>oklch(0.96 0.010 285)</td><td>oklch(0.22 0.018 285)</td><td>Muted backgrounds</td></tr>
+      <tr><td><code>--border</code></td><td>oklch(0.90 0.015 285)</td><td>oklch(0.28 0.020 285)</td><td>Borders, dividers</td></tr>
+      <tr><td><code>--destructive</code></td><td>oklch(0.577 0.245 27)</td><td>oklch(0.577 0.245 27)</td><td>Delete, cancel, errors</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Custom gradient utilities (globals.css)</h3>
+  <table>
+    <thead><tr><th>Class</th><th>Use</th></tr></thead>
+    <tbody>
+      <tr><td><code>.gradient-brand</code></td><td>Violet → purple-pink, 135deg — CTAs, brand buttons</td></tr>
+      <tr><td><code>.gradient-text</code></td><td>Same gradient clipped as text</td></tr>
+      <tr><td><code>.gradient-hero</code></td><td>Subtle page-level violet wash for hero sections</td></tr>
+      <tr><td><code>.shadow-card-live</code></td><td>Violet-tinted drop shadow for live match cards</td></tr>
+      <tr><td><code>.glass</code></td><td>Glassmorphism — backdrop-blur + semi-transparent bg (header, overlays)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Radius &amp; typography</h3>
+  <p><code>--radius: 0.75rem</code>. Cards and containers: <code>rounded-xl</code>. Items inside (nav links, menu items): <code>rounded-lg</code>. No custom display font — system font stack everywhere.</p>
+</div>
+
+<!-- PATTERNS -->
+<div class="section" id="patterns">
+  <h2>Patterns &amp; Gotchas</h2>
+
+  <div class="hl">
+    <strong>proxy.ts — not middleware.ts</strong>
+    <span>Next.js 16 renamed the middleware entry to <code>src/proxy.ts</code>. The exported function must be named <code>proxy</code>. If you create a <code>middleware.ts</code>, the build will error. Do not create both files.</span>
+  </div>
+
+  <div class="hl">
+    <strong>setUser before router.push on auth</strong>
+    <span>After login or registration, always call <code>setUser(userDoc)</code> before <code>router.push</code>. The dashboard middleware sees a valid cookie but <code>AppShell</code> reads auth from context — if context is empty, it may flash a redirect loop.</span>
+  </div>
+
+  <div class="hl">
+    <strong>Opacity modifiers don't work with oklch tokens</strong>
+    <span>CSS custom properties hold full <code>oklch(...)</code> values. Tailwind's <code>bg-primary/50</code> syntax produces transparent results. Use <code>color-mix(in oklch, var(--primary) 50%, transparent)</code> in raw CSS, or pick a different token.</span>
+  </div>
+
+  <div class="hl">
+    <strong>No onSnapshot outside EventFeed</strong>
+    <span>EventFeed.tsx is the single authorised place for real-time Firestore listeners. All other data loading is one-time on mount. Adding another <code>onSnapshot</code> elsewhere will accumulate open listeners and cause memory leaks.</span>
+  </div>
+
+  <div class="hl">
+    <strong>Radix asChild incompatible with Base UI Button</strong>
+    <span>Base UI doesn't expose a ref-compatible interface with Radix's <code>asChild</code>. Style <code>DropdownMenuTrigger</code> directly via <code>className</code> — never nest the flive-web <code>&lt;Button&gt;</code> inside it.</span>
+  </div>
+
+  <div class="hl">
+    <strong>Score increments are atomic — addMatchEvent only</strong>
+    <span>Never manually patch <code>homeScore</code> or <code>awayScore</code> on a match doc. <code>addMatchEvent</code> uses Firestore <code>increment()</code> in the same write as the event. <code>deleteMatchEvent</code> does the reverse. Calling both independently risks double-counting.</span>
+  </div>
+
+  <div class="hl">
+    <strong>Never delete the events subcollection</strong>
+    <span>The events subcollection is permanent. On match finish, <code>writeMatchSummary()</code> compiles a compact summary object onto the match doc — that summary is for fast viewer access only. The events remain the source of truth for any future reporting or auditing.</span>
+  </div>
+
+  <div class="hl">
+    <strong>No Firebase offline persistence — use localStorage queue</strong>
+    <span>Firebase SDK offline persistence is explicitly not used. The <code>flive_session</code> localStorage queue is the offline strategy. It's simpler, fully controlled, and doesn't conflict with the server-side session cookie pattern.</span>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+  const sections = document.querySelectorAll('[id]');
+  const links = document.querySelectorAll('.nav-link');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.nav-link[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
